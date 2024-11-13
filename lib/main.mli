@@ -1,5 +1,6 @@
-module type Value = sig
-  type t
+(* The main data type we'll run operation *)
+module type Tensor = sig
+  type t 
   (** The type representing numerical values, which could be scalars, vectors, or matrices. *)
 
   val shape : t -> int list
@@ -15,7 +16,7 @@ module type Value = sig
   (** Generates a value with random entries, given the specified dimensions and an optional seed. *)
 end
 
-
+(* Some common errors when operating with n-dimensional tensors *)
 module type Errors = sig
   exception DimensionMismatch of string
   exception InvalidArgument of string
@@ -24,26 +25,21 @@ end
 
 
 module type Op = sig
-  include Value
+  include Tensor
 
   include Errors
-  (** Inherits from the Value module type to access the type t and its associated functions. *)
 
   val add : t -> t -> t
-  (** Element-wise addition of two values. *)
-  (** Raises DimensionMismatch if shapes are incompatible. *)
+  (** Element-wise addition of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
   val sub : t -> t -> t
-  (** Element-wise subtraction of two values. *)
-  (** Raises DimensionMismatch if shapes are incompatible. *)
+  (** Element-wise subtraction of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
   val mul : t -> t -> t
-  (** Element-wise multiplication of two values. *)
-  (** Raises DimensionMismatch if shapes are incompatible. *)
+  (** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
-  val div : t -> t -> t
-  (** Element-wise division of two values. *)
-  
+  val div : t -> float -> t
+  (** Element-wise division of two values. Raises DivisionByZero*)
 
   val dot : t -> t -> t
   (** Dot product of two values. For matrices, this represents matrix multiplication. *)
@@ -92,7 +88,7 @@ module type Op = sig
 end
 
 module type Function = sig
-  include Value
+  include Tensor
 
   type f = t -> t
   (** A function that maps values of type t to values of type t. *)
@@ -107,6 +103,7 @@ module type Function = sig
   (** Lifts a value-to-value function to operate over the function type f. *)
 end
 
+(* A way to represent the function control flow that we are trying to differentiate *)
 module type ControlFlow = sig
   type t
   type f = t -> t
@@ -120,6 +117,7 @@ module type ControlFlow = sig
   val for_loop : t -> t -> f -> t
   (** Represents a for loop construct. *)
 end
+
 
 module type Differentiation = sig
   include Op
@@ -142,7 +140,7 @@ module type Differentiation = sig
   (** Allows for the saving and restoring of computation graphs to manage memory usage. *)
 end
 
-
+(* We implement a reverse differentiation module because it is more efficienct for certain functions *)
 module type ReverseDifferentiation = sig
   include Op
   include Function with type t := t
@@ -165,11 +163,13 @@ module type ReverseDifferentiation = sig
 end
 
 (** The main module functor that, given a Value module, produces a Differentiation module with the associated types. *)
-module type AD = functor (V : Value) -> sig
+module type AD = functor (V : Tensor) -> sig
   include Differentiation with type t = V.t
   include ReverseDifferentiation with type t = V.t
 end
 
+(* Machine Learning optimizer used to actually do backpropogation. 
+It is a good way to test the automatic differentiation library*)
 module Optimize : sig
   type t
   type f
