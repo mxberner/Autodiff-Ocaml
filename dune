@@ -1,5 +1,5 @@
-(library
- (name core))
-
-(library
- (name viz))
+(rule
+ (target project.zip)
+ (deps lib/main.mli lib/dune test/dune)
+ (action
+  (run zip -R project.zip %{deps})))
