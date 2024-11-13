@@ -1,0 +1,3 @@
+(library
+ (modules_without_implementation main)
+ (name ml))
