@@ -12,15 +12,15 @@ let f x = x * x
 let result = ad.grad f 5 (* derivative of f where x = 5 *) 
 ```
 
+## What is Auto Differentiation?
+
 Unlike symbolic differentiation which manipulates expressions directly, or numerical differentiation which approximates function derivatives, automatic differentiation computes derivatives to machine precision using the chain rule of calculus during program execution. 
 
 The key benefits of automatic differentiation are accuracy, generality, and being able to deal with higher order derivatives. Automatic differentiation is highly accurate at computing the gradient of a function while also being able to handle complex functions with control flow structures like loops and conditions. 
 
-## What is Auto Differentiation 
-
 Automatic differentiation evaluates the derivative at specific values without explicitly simplifying expressions. It works by decomposing functions into simple operations i.e., by creating a computational graph and applying the chain rule during evaluation. This makes it especially efficient for functions involving composition. 
 
-Automatic Differentiation has two modes 
+Automatic Differentiation has two modes: 
 
 1. Forward mode  
 
