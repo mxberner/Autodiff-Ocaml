@@ -494,25 +494,25 @@ end
 
 ## Implementation plan  
 
-Implement basic tensor operation 
+* Implement basic tensor operation 
 
-Implement jacobian-vector products (JVPs, aka forward-mode auto differentiation) 
+* Implement jacobian-vector products (JVPs, aka forward-mode auto differentiation) 
 
-Implement vector-Jacobian products (VJPs, aka reverse-mode auto differentiation) 
+* Implement vector-Jacobian products (VJPs, aka reverse-mode auto differentiation) 
 
-Implement common machine learning optimizers (e.g. gradient descent) to test out the auto-diff library 
+* Implement common machine learning optimizers (e.g. gradient descent) to test out the auto-diff library 
 
-Add support to checkpoint and restart backpropagation 
+* Add support to checkpoint and restart backpropagation 
 
-Add support for visualization of the control flow graph 
+* Add support for visualization of the control flow graph 
 
-Add support for visualization of the derivative path 
+* Add support for visualization of the derivative path 
 
-Generalize auto-diff to support more complex functions (e.g. functions with control flow like loops) 
+* Generalize auto-diff to support more complex functions (e.g. functions with control flow like loops) 
 
-Parallelize computation so we can deal with larger dimensional tensors. 
+* Parallelize computation so we can deal with larger dimensional tensors. 
 
-Demo web interface 
+* Demo web interface 
 
 ## Features 
 
