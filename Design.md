@@ -44,16 +44,15 @@ Auto differentiation, in contrast, computes derivatives at specific points by de
 
 let f x = x * x  
 let result = ad.gradient f 5 (* derivative of f where x = 5 *)   
-
- 
-
+```
+```ocaml
 (* example 2 *) 
 
 let g x = tan x 
 let result = ad.gradient (g g) 5 (* derivative of tan (tan x) where x = 5 *) 
-
+```
  
-
+```ocaml
 (* example advanced control flow *) 
 
 let taylor_sine x = 
