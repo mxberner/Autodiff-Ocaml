@@ -488,25 +488,38 @@ end
 
 ## Implementation plan  
 
-* Implement basic tensor operation 
+### Week 1 (Nov 14 - Nov 20)
 
-* Implement jacobian-vector products (JVPs, aka forward-mode auto differentiation) 
+-   **Implement basic tensor operation**
+-   **Implement jacobian-vector products (JVPs, aka forward-mode auto differentiation)**
 
-* Implement vector-Jacobian products (VJPs, aka reverse-mode auto differentiation) 
+* * * * *
 
-* Implement common machine learning optimizers (e.g. gradient descent) to test out the auto-diff library 
+### Week 2 (Nov 21 - Nov 27)
 
-* Add support to checkpoint and restart backpropagation 
+-   **Implement vector-Jacobian products (VJPs, aka reverse-mode auto differentiation)**
+-   **Implement common machine learning optimizers (e.g., gradient descent) to test out the auto-diff library**
 
-* Add support for visualization of the control flow graph 
+* * * * *
 
-* Add support for visualization of the derivative path 
+### Week 3 (Nov 28 - Dec 4)
 
-* Generalize auto-diff to support more complex functions (e.g. functions with control flow like loops) 
+-   **Add support to checkpoint and restart backpropagation**
+-   **Add support for visualization of the control flow graph**
 
-* Parallelize computation so we can deal with larger dimensional tensors. 
+* * * * *
 
-* Demo web interface 
+### Week 4 (Dec 5 - Dec 11)
+
+-   **Add support for visualization of the derivative path**
+-   **Generalize auto-diff to support more complex functions (e.g., functions with control flow like loops)**
+
+* * * * *
+
+### Week 5 (Dec 12 - Dec 18)
+
+-   **Parallelize computation so we can deal with larger dimensional tensors**
+-   **Demo web interface**
 
 ## Features 
 
