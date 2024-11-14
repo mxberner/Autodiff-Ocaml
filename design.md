@@ -22,15 +22,11 @@ Automatic differentiation evaluates the derivative at specific values without ex
 
 Automatic Differentiation has two modes: 
 
-*  **Forward mode**  
-
-The independent variable with respect to which the derivative must be calculated is fixed. It the computes the derivative of each sub-expression recursively. 
+*  **Forward mode** - The independent variable with respect to which the derivative must be calculated is fixed. It the computes the derivative of each sub-expression recursively. 
 It is efficient when the number of input variables are small, and number of output variables are large.
 
 
-* **Reverse mode** 
-
-The dependent variable to be differentiated is fixed and the derivative is computed with respect to each sub-expression recursively. 
+* **Reverse mode** - The dependent variable to be differentiated is fixed and the derivative is computed with respect to each sub-expression recursively. 
 It is efficient when the number of input variables are many and the number of outputs variables as small. 
 
  
