@@ -80,7 +80,6 @@ let result = ad.gradient taylor_sine 5
 
 [Dream](https://aantron.github.io/dream/)
 
-Need a working demo for each non-standard library 
 
 
 ## Module type declarations 
