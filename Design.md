@@ -502,14 +502,14 @@ end
 
 * * * * *
 
-### Week 3 (Nov 28 - Dec 4)
+### Week 3 (Nov 28 - Dec 3)
 
 -   **Add support to checkpoint and restart backpropagation**
 -   **Add support for visualization of the control flow graph**
   
 * * * * *
 
-   **Code checkpoint (Dec 4)**
+-   **Code checkpoint (Dec 4)**
 
 * * * * *
 
