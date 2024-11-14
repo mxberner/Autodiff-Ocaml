@@ -82,7 +82,7 @@ Need a working demo for each non-standard library
 
 
 ## Module type declarations 
-[https://github.com/mxberner/Autodiff-Ocaml/blob/main/src/lib/main.mli](https://github.com/mxberner/Autodiff-Ocaml/blob/main/src/lib/main.mli)
+[/src/lib/main.mli](https://github.com/mxberner/Autodiff-Ocaml/blob/main/src/lib/main.mli)
 
 ## Features 
 
