@@ -510,9 +510,9 @@ Parallelize computation so we can deal with larger dimensional tensors.
 
 Demo web interface 
 
-Features 
+## Features 
 
-## Support for general mathematical functions 
+Support for general mathematical functions 
 
 Implementations of common machine learning optimizers like SGD and Adam 
 
