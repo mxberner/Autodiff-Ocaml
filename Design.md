@@ -72,11 +72,13 @@ let result = ad.gradient taylor_sine 5
 
 ## Libraries List 
 
-ocamlgraph [https://github.com/backtracking/ocamlgraph]  
+[ocamlgraph](https://github.com/backtracking/ocamlgraph)
 
-oplot [https://github.com/sanette/oplot] 
+[oplot](https://github.com/sanette/oplot) 
 
-graphics [https://github.com/ocaml/graphics] 
+[graphics](https://github.com/ocaml/graphics)
+
+[Dream](https://aantron.github.io/dream/)
 
 Need a working demo for each non-standard library 
 
