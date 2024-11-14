@@ -2,8 +2,3 @@
  (public_name demo)
  (name demo)
  (libraries ocamlgraph graphics))
-
-(executable
- (public_name plot)
- (name plot)
- (libraries oplot))
