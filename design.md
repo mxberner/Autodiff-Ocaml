@@ -39,7 +39,11 @@ It is efficient when the number of input variables are many and the number of ou
 
 ## Mock Use  
 
-The most common application of automatic differentiation is in machine learning libraries. It is specifically used in optimizers that rely heavily on automatic differentiation for efficient gradient computation. 
+The most common application of automatic differentiation is in machine learning libraries. Machine learning models, especially neural networks, often have thousands or millions of parameters. Symbolic differentiation, which requires generating explicit formulas, becomes highly impractical because it produces unwieldy, large expressions that are expensive to compute and store. 
+
+Auto differentiation, in contrast, computes derivatives at specific points by decomposing functions into sequences of elementary operations (like addition and multiplication) and applying the chain rule. This means it avoids generating explicit formulas, reducing computational complexity and memory usage. 
+
+ It is also heavily used in optimizers that rely on automatic differentiation for efficient gradient computation. 
 
 ```ocaml
 (* example 1 *) 
