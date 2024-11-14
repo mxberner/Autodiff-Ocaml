@@ -484,7 +484,18 @@ module Visualize : sig
 
 end 
 ```
- 
+
+## Features 
+
+* Support for general mathematical functions 
+
+* Implementations of common machine learning optimizers like SGD and Adam 
+
+* Tools to visualize derivative path and control flow graph 
+
+* Support for parallel computation 
+
+* Ability to do nested derivative computations  
 
 ## Implementation plan  
 
@@ -530,16 +541,6 @@ end
 
 ### Project Demo (Dec 18)
 
-## Features 
 
-* Support for general mathematical functions 
-
-* Implementations of common machine learning optimizers like SGD and Adam 
-
-* Tools to visualize derivative path and control flow graph 
-
-* Support for parallel computation 
-
-* Ability to do nested derivative computations 
 
  
