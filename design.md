@@ -516,14 +516,14 @@ end
 
 ## Features 
 
-Support for general mathematical functions 
+* Support for general mathematical functions 
 
-Implementations of common machine learning optimizers like SGD and Adam 
+* Implementations of common machine learning optimizers like SGD and Adam 
 
-Tools to visualize derivative path and control flow graph 
+* Tools to visualize derivative path and control flow graph 
 
-Support for parallel computation 
+* Support for parallel computation 
 
-Ability to do nested derivative computations 
+* Ability to do nested derivative computations 
 
  
