@@ -31,7 +31,7 @@ It is efficient when the number of input variables are small, and number of outp
 * **Reverse mode** 
 
 The dependent variable to be differentiated is fixed and the derivative is computed with respect to each sub-expression recursively. 
-It is efficient when the number of input variables are many and the number of outputs variables as small 
+It is efficient when the number of input variables are many and the number of outputs variables as small. 
 
  
 
