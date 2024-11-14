@@ -2,7 +2,7 @@
 
 ## Overview  
 
-The project aims to implement automatic differentiation in OCaml.  
+The project aims to implement **Automatic Differentiation** in OCaml.  
 
 Automatic differentiation is an algorithm used to evaluate derivatives of functions expressed as a computer program.  
 
