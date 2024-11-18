@@ -1,5 +1,4 @@
-(* Machine Learning optimizer used to actually do backpropogation.
-   It is a good way to test the automatic differentiation library*)
+(* Machine Learning optimizer used to actually do backpropogation. It is a good way to test the automatic differentiation library*)
 module Optimize : sig
   type t
   type f
