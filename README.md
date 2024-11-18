@@ -1,8 +1,7 @@
+# Final Project for Functional Programming in Software Engineering (601.629) FA24
+
 [Project Requirements](https://pl.cs.jhu.edu/fpse/assignments/project.html)
 
-Autodifferentiation in OCaml.
+The project aims to implement **Automatic Differentiation** in OCaml.
 
-
-let x = [1, 2, 3]
-let f = x * 6;;
-let d = ml.grad (f f f f) 5;;
+Automatic differentiation is an algorithm used to evaluate derivatives of functions expressed as a computer program.
