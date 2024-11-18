@@ -18,29 +18,13 @@ module type Op = sig
   include Errors
 
   val add : t -> t -> t
-  (** Element-wise addition of two values. Raises DimensionMismatch if shapes are incompatible. *)
-
   val sub : t -> t -> t
-  (** Element-wise subtraction of two values. Raises DimensionMismatch if shapes are incompatible. *)
-
   val mul : t -> t -> t
-  (** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
-
   val div : t -> float -> t
-  (** Element-wise division of two values. Raises DivisionByZero*)
-
   val dot : t -> t -> t
-  (** Dot product of two values. For matrices, this represents matrix multiplication. *)
-
   val pow : t -> float -> t
-  (** Raises each element of the value to the specified power. *)
-
   val log : t -> t
-  (** Applies the natural logarithm element-wise. *)
-
   val exp : t -> t
-  (** Applies the exponential function element-wise. *)
-
   val sin : t -> t
   val cos : t -> t
   val tan : t -> t
@@ -59,6 +43,7 @@ module type Function = sig
   include Tensor
 
   type f = t -> t
+
   val eval : f -> t -> t
   val compose : f -> f -> f
   val map : (t -> t) -> f
