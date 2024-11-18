@@ -1,3 +1,12 @@
 (library
- (modules_without_implementation main)
+ (modules_without_implementation
+  ad
+  control_flow
+  differentiation
+  errors
+  function
+  op
+  optimize
+  reverse_differentiation
+  tensor)
  (name ml))

@@ -1,19 +1,10 @@
-(* The main data type we'll run operation *)
 module type Tensor = sig
-  type t 
-  (** The type representing numerical values, which could be scalars, vectors, or matrices. *)
+  type t
 
   val shape : t -> int list
-  (** Returns the dimensions of the value as a list of integers. *)
-
   val zeros : int list -> t
-  (** Creates a n x n tensor value filled with zeros, given the specified dimensions. *)
-
   val ones : int list -> t
-  (** Creates a n x n tensor value filled with ones, given the specified dimensions. *)
-
   val random : ?seed:int -> int list -> t
-  (** Generates a value with random entries, given the specified dimensions and an optional seed. *)
 end
 
 (* Some common errors when operating with n-dimensional tensors *)
@@ -23,10 +14,8 @@ module type Errors = sig
   exception DivisionByZero
 end
 
-
 module type Op = sig
   include Tensor
-
   include Errors
 
   val add : t -> t -> t
@@ -79,11 +68,8 @@ module type Op = sig
 
   (* Operator overloading for custom operations on matrices *)
   val ( + ) : t -> t -> t
-
   val ( - ) : t -> t -> t
-  
   val ( * ) : t -> t -> t
-  
   val ( / ) : t -> t -> t
 end
 
@@ -118,11 +104,10 @@ module type ControlFlow = sig
   (** Represents a for loop construct. *)
 end
 
-
 module type Differentiation = sig
   include Op
   include Function with type t := t
-  include ControlFlow with type t := t 
+  include ControlFlow with type t := t
 
   val gradient : f -> t -> t
   (** Computes the gradient of the scalar-valued function at the given input. *)
@@ -144,7 +129,7 @@ end
 module type ReverseDifferentiation = sig
   include Op
   include Function with type t := t
-  include ControlFlow with type t := t 
+  include ControlFlow with type t := t
 
   val gradient : f -> t -> t
   (** Computes the gradient of the scalar-valued function at the given input. *)
@@ -161,36 +146,3 @@ module type ReverseDifferentiation = sig
   val checkpoint : f -> f
   (** Allows for the saving and restoring of computation graphs to manage memory usage. *)
 end
-
-(** The main module functor that, given a Value module, produces a Differentiation module with the associated types. *)
-module type AD = functor (V : Tensor) -> sig
-  include Differentiation with type t = V.t
-  include ReverseDifferentiation with type t = V.t
-end
-
-(* Machine Learning optimizer used to actually do backpropogation. 
-It is a good way to test the automatic differentiation library*)
-module Optimize : sig
-  type t
-  type f
-  type optimizer = {
-    init : t;
-    step : t -> t;
-    stop_condition : t -> bool;
-  }
-
-  val gradient_descent : f -> optimizer -> t
-  (** Performs gradient descent optimization on the function. *)
-
-  val newton_raphson : f -> optimizer -> t
-  (** Performs Newton-Raphson optimization using the Hessian. *)
-end
-
-module Visualize : sig
-  val export_graph : filename:string -> unit
-  (** Exports the current computational graph to a file. *)
-
-  val show_graph : unit -> unit
-  (** Displays the computational graph using an internal viewer. *)
-end
-
