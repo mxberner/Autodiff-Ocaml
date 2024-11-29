@@ -1,21 +1,5 @@
-module type Tensor = sig
+module type OpType = sig
   type t
-
-  val shape : t -> int list
-  val zeros : int list -> t
-  val ones : int list -> t
-  val random : ?seed:int -> int list -> t
-end
-
-module type Errors = sig
-  exception DimensionMismatch of string
-  exception InvalidArgument of string
-  exception DivisionByZero
-end
-
-module type Op = sig
-  include Tensor
-  include Errors
 
   val add : t -> t -> t
   (** Element-wise addition of two values. Raises DimensionMismatch if shapes are incompatible. *)
@@ -69,5 +53,9 @@ module type Op = sig
   val ( + ) : t -> t -> t
   val ( - ) : t -> t -> t
   val ( * ) : t -> t -> t
-  val ( / ) : t -> t -> t
+  val ( / ) : t -> float -> t
 end
+
+module type OpFunctor = functor (T : Tensor.Type) -> OpType with type t = T.t
+
+module Op : OpFunctor
