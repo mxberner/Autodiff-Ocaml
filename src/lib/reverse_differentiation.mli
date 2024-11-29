@@ -5,18 +5,6 @@ module type Tensor = sig
   val zeros : int list -> t
   val ones : int list -> t
   val random : ?seed:int -> int list -> t
-end
-
-module type Errors = sig
-  exception DimensionMismatch of string
-  exception InvalidArgument of string
-  exception DivisionByZero
-end
-
-module type Op = sig
-  include Tensor
-  include Errors
-
   val add : t -> t -> t
   val sub : t -> t -> t
   val mul : t -> t -> t
@@ -36,7 +24,13 @@ module type Op = sig
   val ( + ) : t -> t -> t
   val ( - ) : t -> t -> t
   val ( * ) : t -> t -> t
-  val ( / ) : t -> t -> t
+  val ( / ) : t -> float -> t
+end
+
+module type Errors = sig
+  exception DimensionMismatch of string
+  exception InvalidArgument of string
+  exception DivisionByZero
 end
 
 module type Function = sig
@@ -60,7 +54,7 @@ end
 
 (* We implement a reverse differentiation module because it is more efficienct for certain functions *)
 module type ReverseDifferentiation = sig
-  include Op
+  include Tensor
   include Function with type t := t
   include ControlFlow with type t := t
 
