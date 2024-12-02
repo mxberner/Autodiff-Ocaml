@@ -1,5 +1,6 @@
 (library
- (modules_without_implementation
+ (name ml)
+ (modules
   ad
   control_flow
   differentiation
@@ -7,5 +8,11 @@
   function
   optimize
   reverse_differentiation
- )
- (name ml))
+  tensor)
+ (modules_without_implementation
+  ad
+  control_flow
+  differentiation
+  function
+  optimize
+  reverse_differentiation))
