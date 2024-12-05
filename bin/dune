@@ -1,0 +1,5 @@
+ (executable
+  (public_name diffd)
+  (name diffd)
+  (modules diffd)
+  (libraries core ppx_jane))

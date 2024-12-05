@@ -1,8 +1,6 @@
 (library
  (modules_without_implementation
   ad
-  control_flow
-  differentiation
   errors
   function
   optimize

@@ -9,6 +9,8 @@ module type T = sig
   val sub : t -> t -> t
   val mul : t -> t -> t
   val div : t -> float -> t
+  val less : t -> t -> t
+  val equal : t -> t -> t
   val dot : t -> t -> t
   val pow : t -> float -> t
   val log : t -> t
@@ -20,7 +22,7 @@ module type T = sig
   val transpose : t -> t
   val negate : t -> t
   val flatten : t -> t
-  val sum : t -> t
+  val sum : t -> float
   val ( + ) : t -> t -> t
   val ( - ) : t -> t -> t
   val ( * ) : t -> t -> t
@@ -148,6 +150,58 @@ module Tensor : T = struct
     | Vector v -> Vector (Array.map (fun x -> x /. scalar) v)
     | Matrix m -> Matrix (Array.map (Array.map (fun x -> x /. scalar)) m)
 
+  let less t1 t2 =
+    match (t1, t2) with
+    | Scalar a, Scalar b -> Scalar (if a < b then 1.0 else 0.0)
+    | Vector v1, Vector v2 ->
+        if Array.length v1 <> Array.length v2 then
+          failwith "Vectors must have the same length."
+        else
+          Vector
+            (Array.init (Array.length v1) (fun i ->
+                 if v1.(i) < v2.(i) then 1.0 else 0.0))
+    | Matrix m1, Matrix m2 ->
+        let rows1 = Array.length m1 and rows2 = Array.length m2 in
+        if rows1 <> rows2 then
+          failwith "Matrices must have the same dimensions."
+        else
+          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
+          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
+          if cols1 <> cols2 then
+            failwith "Matrices must have the same dimensions."
+          else
+            Matrix
+              (Array.init rows1 (fun i ->
+                   Array.init cols1 (fun j ->
+                       if m1.(i).(j) < m2.(i).(j) then 1.0 else 0.0)))
+    | _, _ -> failwith ""
+
+  let equal t1 t2 =
+    match (t1, t2) with
+    | Scalar a, Scalar b -> Scalar (if a = b then 1.0 else 0.0)
+    | Vector v1, Vector v2 ->
+        if Array.length v1 <> Array.length v2 then
+          failwith "Vectors must have the same length."
+        else
+          Vector
+            (Array.init (Array.length v1) (fun i ->
+                 if v1.(i) = v2.(i) then 1.0 else 0.0))
+    | Matrix m1, Matrix m2 ->
+        let rows1 = Array.length m1 and rows2 = Array.length m2 in
+        if rows1 <> rows2 then
+          failwith "Matrices must have the same dimensions."
+        else
+          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
+          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
+          if cols1 <> cols2 then
+            failwith "Matrices must have the same dimensions."
+          else
+            Matrix
+              (Array.init rows1 (fun i ->
+                   Array.init cols1 (fun j ->
+                       if m1.(i).(j) = m2.(i).(j) then 1.0 else 0.0)))
+    | _, _ -> failwith ""
+
   (* Dot product *)
   let dot t1 t2 =
     match (t1, t2) with
@@ -228,13 +282,12 @@ module Tensor : T = struct
   (* Sum *)
   let sum t =
     match t with
-    | Scalar a -> Scalar a
-    | Vector v -> Scalar (Array.fold_left ( +. ) 0.0 v)
+    | Scalar a -> a
+    | Vector v -> Array.fold_left ( +. ) 0.0 v
     | Matrix m ->
-        Scalar
-          (Array.fold_left
-             (fun acc row -> acc +. Array.fold_left ( +. ) 0.0 row)
-             0.0 m)
+        Array.fold_left
+          (fun acc row -> acc +. Array.fold_left ( +. ) 0.0 row)
+          0.0 m
 
   (* Operator overloading *)
   let ( + ) = add

@@ -1,9 +1,11 @@
 (rule
  (target project.zip)
  (deps
+  bin/diffd.ml
+  bin/dune
   src/lib/ad.mli
   src/lib/control_flow.mli
-  src/lib/differentiation.mli
+  src/lib/forward_differentiation.mli
   src/lib/errors.mli
   src/lib/function.mli
   src/lib/optimize.mli
