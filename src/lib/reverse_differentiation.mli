@@ -1,4 +1,4 @@
-module type Tensor = sig
+(* module type Tensor = sig
   type t
 
   val shape : t -> int list
@@ -74,4 +74,4 @@ module type RD = sig
   (** Allows for the saving and restoring of computation graphs to manage memory usage. *)
 end
 
-module ReverseDifferentiation: RD
+module ReverseDifferentiation: RD *)

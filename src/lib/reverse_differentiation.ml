@@ -1,4 +1,4 @@
-module type Tensor = sig
+(* module type Tensor = sig
   type t
 
   val shape : t -> int list
@@ -73,4 +73,4 @@ module type RD = sig
 
   val checkpoint : f -> f
   (** Allows for the saving and restoring of computation graphs to manage memory usage. *)
-end
+end *)

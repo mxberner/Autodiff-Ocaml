@@ -1,78 +1,82 @@
 (* The main data type we'll run operations on *)
-module type T = sig
-  type t
-  (** The type representing numerical values, which could be scalars, vectors, or matrices. *)
+type t = Scalar of float | Vector of float array | Matrix of float array array
+type s = { rows : int; cols : int }
 
-  val shape : t -> int list
-  (** Returns the dimensions of the value as a list of integers. *)
+val shape : t -> s
+(** The type representing numerical values, which could be scalars, vectors, or matrices. *)
 
-  val zeros : int list -> t
-  (** Creates a n x n tensor value filled with zeros, given the specified dimensions. *)
+(** Returns the dimensions of the value {rows; cols}. *)
 
-  val ones : int list -> t
-  (** Creates a n x n tensor value filled with ones, given the specified dimensions. *)
+val zeros : int list -> t
+(** Creates a n x n tensor value filled with zeros, given the specified dimensions. *)
 
-  val random : ?seed:int -> int list -> t
-  (** Generates a value with random entries, given the specified dimensions and an optional seed. *)
+val ones : int list -> t
+(** Creates a n x n tensor value filled with ones, given the specified dimensions. *)
 
-  val add : t -> t -> t
-  (** Element-wise addition of two values. Raises DimensionMismatch if shapes are incompatible. *)
+val random : ?seed:int -> int list -> t
+(** Generates a value with random entries, given the specified dimensions and an optional seed. *)
 
-  val sub : t -> t -> t
-  (** Element-wise subtraction of two values. Raises DimensionMismatch if shapes are incompatible. *)
+val map : (float -> float) -> t -> t
 
-  val mul : t -> t -> t
-  (** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
+(* map f a applies function f to all the elements of a, and builds an array with the results returned by f: [| f a.(0); f a.(1); ...; f a.(length a - 1) |]. *)
+val map2 : (float -> float -> float) -> t -> t -> t
+(* map2 f a b applies function f to all the elements of a and b, and builds an array with the results returned by f: [| f a.(0) b.(0); ...; f a.(length a - 1) b.(length b - 1)|]. *)
 
-  val div : t -> float -> t
-  (** Element-wise division of two values. Raises DivisionByZero*)
+val add : t -> t -> t
+(** Element-wise addition of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
-  val less : t -> t -> t
-  (** Element-wise less than*)
+val sub : t -> t -> t
+(** Element-wise subtraction of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
-  val equal : t -> t -> t
+val mul : t -> t -> t
+(** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
-  val dot : t -> t -> t
-  (** Dot product of two values. For matrices, this represents matrix multiplication. *)
+val div : t -> float -> t
+(** Element-wise division of two values. Raises DivisionByZero*)
 
-  val pow : t -> float -> t
-  (** Raises each element of the value to the specified power. *)
+val less : t -> t -> t
+(** Element-wise less than*)
 
-  val log : t -> t
-  (** Applies the natural logarithm element-wise. *)
+val equal : t -> t -> t
 
-  val exp : t -> t
-  (** Applies the exponential function element-wise. *)
+val dot : t -> t -> t
+(** Dot product of two values. For matrices, this represents matrix multiplication. *)
 
-  val sin : t -> t
-  (** Applies the sine function element-wise. *)
+val pow : t -> float -> t
+(** Raises each element of the value to the specified power. *)
 
-  val cos : t -> t
-  (** Applies the cosine function element-wise. *)
+val log : t -> t
+(** Applies the natural logarithm element-wise. *)
 
-  val tan : t -> t
-  (** Applies the tangent function element-wise. *)
+val exp : t -> t
+(** Applies the exponential function element-wise. *)
 
-  val reshape : t -> int list -> t
-  (** Reshapes the value to the specified dimensions. *)
+val sin : t -> t
+(** Applies the sine function element-wise. *)
 
-  val transpose : t -> t
-  (** Transposes the value (only applicable for matrices). *)
+val cos : t -> t
+(** Applies the cosine function element-wise. *)
 
-  val negate : t -> t
-  (** Negates each element of the value. *)
+val tan : t -> t
+(** Applies the tangent function element-wise. *)
 
-  val flatten : t -> t
-  (** Flattens the value into a one-dimensional array. *)
+val reshape : t -> int list -> t
+(** Reshapes the value to the specified dimensions. *)
 
-  val sum : t -> float
-  (** Sums all elements of the value, returning a scalar value. *)
+val transpose : t -> t
+(** Transposes the value (only applicable for matrices). *)
 
-  (* Operator overloading for custom operations on matrices *)
-  val ( + ) : t -> t -> t
-  val ( - ) : t -> t -> t
-  val ( * ) : t -> t -> t
-  val ( / ) : t -> float -> t
-end
+val negate : t -> t
+(** Negates each element of the value. *)
 
-module Tensor : T
+val flatten : t -> t
+(** Flattens the value into a one-dimensional array. *)
+
+val sum : t -> float
+(** Sums all elements of the value, returning a scalar value. *)
+
+(* Operator overloading for custom operations on matrices *)
+val ( + ) : t -> t -> t
+val ( - ) : t -> t -> t
+val ( * ) : t -> t -> t
+val ( / ) : t -> float -> t
