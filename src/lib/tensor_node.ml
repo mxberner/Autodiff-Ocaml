@@ -36,6 +36,23 @@ module Tensor_Node = struct
   let add (t1 : 'a t_node) (t2 :'a t_node) : 'a t_node = 
     {value = Tensor.add t1.value t2.value; left = t1; right = t2;}
   (* repeat this for all elementary functions *)
-end;; 
+end;;  
 
-*)
+ocamlgraph implementation might be, after defining the node and edge types, something like... 
+
+let g = Digraph.create 
+
+let a = Vertex.create 5 
+add_vertex g a 
+
+let b = Vertex.create 6
+add_vertex g b 
+
+let c = Vertex.create Tensor.add a b
+add_vertex g c 
+add_edge c a 
+add_edge c b 
+
+which is not particularly automated
+
+*) 
