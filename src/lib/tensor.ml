@@ -1,7 +1,8 @@
 module type T = sig
   type t
+  type s = { rows : int; cols : int }
 
-  val shape : t -> int list
+  val shape : t -> s
   val zeros : int list -> t
   val ones : int list -> t
   val random : ?seed:int -> int list -> t
@@ -35,13 +36,16 @@ module Tensor : T = struct
     | Vector of float array
     | Matrix of float array array
 
-  let shape (tensor : t) : int list =
+  type s = { rows : int; cols : int }
+
+  let shape (tensor : t) : s =
     match tensor with
-    | Scalar _ -> []
-    | Vector v -> [ Array.length v ]
+    | Scalar _ -> { rows = 0; cols = 0 }
+    | Vector v -> { rows = Array.length v; cols = 0 }
     | Matrix m ->
         let rows = Array.length m in
-        if rows = 0 then [ 0; 0 ] else [ rows; Array.length m.(0) ]
+        if rows = 0 then { rows = 0; cols = 0 }
+        else { rows; cols = Array.length m.(0) }
 
   let zeros (dims : int list) : t =
     match dims with
@@ -65,142 +69,47 @@ module Tensor : T = struct
                Array.init cols (fun _ -> Random.float 1.0)))
     | _ -> failwith "Invalid dimensions."
 
-  let add t1 t2 =
-    match (t1, t2) with
-    | Scalar a, Scalar b -> Scalar (a +. b)
-    | Scalar a, Vector v | Vector v, Scalar a ->
-        Vector (Array.map (fun x -> x +. a) v)
-    | Scalar a, Matrix m | Matrix m, Scalar a ->
-        Matrix (Array.map (Array.map (fun x -> x +. a)) m)
-    | Vector v1, Vector v2 ->
-        if Array.length v1 <> Array.length v2 then failwith "err"
-        else Vector (Array.init (Array.length v1) (fun i -> v1.(i) +. v2.(i)))
-    | Matrix m1, Matrix m2 ->
-        let rows1 = Array.length m1 and rows2 = Array.length m2 in
-        if rows1 <> rows2 then failwith "err"
-        else
-          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
-          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
-          if cols1 <> cols2 then failwith "err"
-          else
-            Matrix
-              (Array.init rows1 (fun i ->
-                   Array.init cols1 (fun j -> m1.(i).(j) +. m2.(i).(j))))
-    | _ -> failwith "err"
+  let map_elementwise f t =
+    match t with
+    | Scalar a -> Scalar (f a)
+    | Vector v -> Vector (Array.map f v)
+    | Matrix m -> Matrix (Array.map (Array.map f) m)
+
+  let map_elementwise2 t1 t2 f =
+    let shape1 = shape t1 and shape2 = shape t2 in
+    if shape1 <> shape2 then failwith "err"
+    else
+      match (t1, t2) with
+      | Scalar a, Scalar b -> Scalar (f a b)
+      | Vector v1, Vector v2 ->
+          Vector (Array.init (Array.length v1) (fun i -> f v1.(i) v2.(i)))
+      | Matrix m1, Matrix m2 -> (
+          match shape1 with
+          | { rows; cols } ->
+              Matrix
+                (Array.init rows (fun i ->
+                     Array.init cols (fun j -> f m1.(i).(j) m2.(i).(j))))
+          | _ -> failwith "err")
+      | _ -> failwith "err"
+
+  (* Element-wise addition *)
+  let add t1 t2 = map_elementwise2 t1 t2 (fun a b -> a +. b)
 
   (* Element-wise subtraction *)
-  let sub t1 t2 =
-    match (t1, t2) with
-    | Scalar a, Scalar b -> Scalar (a -. b)
-    | Scalar a, Vector v -> Vector (Array.map (fun x -> a -. x) v)
-    | Vector v, Scalar a -> Vector (Array.map (fun x -> x -. a) v)
-    | Scalar a, Matrix m -> Matrix (Array.map (Array.map (fun x -> a -. x)) m)
-    | Matrix m, Scalar a -> Matrix (Array.map (Array.map (fun x -> x -. a)) m)
-    | Vector v1, Vector v2 ->
-        if Array.length v1 <> Array.length v2 then
-          failwith "Vectors must have the same length."
-        else Vector (Array.init (Array.length v1) (fun i -> v1.(i) -. v2.(i)))
-    | Matrix m1, Matrix m2 ->
-        let rows1 = Array.length m1 and rows2 = Array.length m2 in
-        if rows1 <> rows2 then
-          failwith "Matrices must have the same dimensions."
-        else
-          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
-          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
-          if cols1 <> cols2 then
-            failwith "Matrices must have the same dimensions."
-          else
-            Matrix
-              (Array.init rows1 (fun i ->
-                   Array.init cols1 (fun j -> m1.(i).(j) -. m2.(i).(j))))
-    | _ -> failwith "Unsupported tensor types for subtraction."
+  let sub t1 t2 = map_elementwise2 t1 t2 (fun a b -> a -. b)
 
   (* Element-wise multiplication *)
-  let mul t1 t2 =
-    match (t1, t2) with
-    | Scalar a, Scalar b -> Scalar (a *. b)
-    | Scalar a, Vector v | Vector v, Scalar a ->
-        Vector (Array.map (fun x -> x *. a) v)
-    | Scalar a, Matrix m | Matrix m, Scalar a ->
-        Matrix (Array.map (Array.map (fun x -> x *. a)) m)
-    | Vector v1, Vector v2 ->
-        if Array.length v1 <> Array.length v2 then
-          failwith "Vectors must have the same length."
-        else Vector (Array.init (Array.length v1) (fun i -> v1.(i) *. v2.(i)))
-    | Matrix m1, Matrix m2 ->
-        let rows1 = Array.length m1 and rows2 = Array.length m2 in
-        if rows1 <> rows2 then
-          failwith "Matrices must have the same dimensions."
-        else
-          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
-          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
-          if cols1 <> cols2 then
-            failwith "Matrices must have the same dimensions."
-          else
-            Matrix
-              (Array.init rows1 (fun i ->
-                   Array.init cols1 (fun j -> m1.(i).(j) *. m2.(i).(j))))
-    | _ -> failwith "Unsupported tensor types for multiplication."
+  let mul t1 t2 = map_elementwise2 t1 t2 (fun a b -> a *. b)
 
   (* Division by scalar *)
   let div t scalar =
-    if scalar = 0.0 then failwith "DivisionByZero";
-    match t with
-    | Scalar a -> Scalar (a /. scalar)
-    | Vector v -> Vector (Array.map (fun x -> x /. scalar) v)
-    | Matrix m -> Matrix (Array.map (Array.map (fun x -> x /. scalar)) m)
+    if scalar = 0.0 then failwith "DivisionByZero"
+    else map_elementwise (fun x -> x /. scalar) t
 
-  let less t1 t2 =
-    match (t1, t2) with
-    | Scalar a, Scalar b -> Scalar (if a < b then 1.0 else 0.0)
-    | Vector v1, Vector v2 ->
-        if Array.length v1 <> Array.length v2 then
-          failwith "Vectors must have the same length."
-        else
-          Vector
-            (Array.init (Array.length v1) (fun i ->
-                 if v1.(i) < v2.(i) then 1.0 else 0.0))
-    | Matrix m1, Matrix m2 ->
-        let rows1 = Array.length m1 and rows2 = Array.length m2 in
-        if rows1 <> rows2 then
-          failwith "Matrices must have the same dimensions."
-        else
-          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
-          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
-          if cols1 <> cols2 then
-            failwith "Matrices must have the same dimensions."
-          else
-            Matrix
-              (Array.init rows1 (fun i ->
-                   Array.init cols1 (fun j ->
-                       if m1.(i).(j) < m2.(i).(j) then 1.0 else 0.0)))
-    | _, _ -> failwith ""
-
-  let equal t1 t2 =
-    match (t1, t2) with
-    | Scalar a, Scalar b -> Scalar (if a = b then 1.0 else 0.0)
-    | Vector v1, Vector v2 ->
-        if Array.length v1 <> Array.length v2 then
-          failwith "Vectors must have the same length."
-        else
-          Vector
-            (Array.init (Array.length v1) (fun i ->
-                 if v1.(i) = v2.(i) then 1.0 else 0.0))
-    | Matrix m1, Matrix m2 ->
-        let rows1 = Array.length m1 and rows2 = Array.length m2 in
-        if rows1 <> rows2 then
-          failwith "Matrices must have the same dimensions."
-        else
-          let cols1 = if rows1 = 0 then 0 else Array.length m1.(0)
-          and cols2 = if rows2 = 0 then 0 else Array.length m2.(0) in
-          if cols1 <> cols2 then
-            failwith "Matrices must have the same dimensions."
-          else
-            Matrix
-              (Array.init rows1 (fun i ->
-                   Array.init cols1 (fun j ->
-                       if m1.(i).(j) = m2.(i).(j) then 1.0 else 0.0)))
-    | _, _ -> failwith ""
+  let float_of_bool b = if b then 1.0 else 0.0
+  let less t1 t2 = map_elementwise2 t1 t2 (fun a b -> float_of_bool (a < b))
+  let equal t1 t2 = map_elementwise2 t1 t2 (fun a b -> float_of_bool (a = b))
+  let greater t1 t2 = map_elementwise2 t1 t2 (fun a b -> float_of_bool (a > b))
 
   (* Dot product *)
   let dot t1 t2 =
@@ -231,19 +140,7 @@ module Tensor : T = struct
     | _ -> failwith "Dot product is only defined for vectors or matrices."
 
   (* Element-wise power *)
-  let pow t exponent =
-    match t with
-    | Scalar a -> Scalar (a ** exponent)
-    | Vector v -> Vector (Array.map (fun x -> x ** exponent) v)
-    | Matrix m -> Matrix (Array.map (Array.map (fun x -> x ** exponent)) m)
-
-  (* Element-wise mathematical functions *)
-  let map_elementwise f t =
-    match t with
-    | Scalar a -> Scalar (f a)
-    | Vector v -> Vector (Array.map f v)
-    | Matrix m -> Matrix (Array.map (Array.map f) m)
-
+  let pow t exponent = map_elementwise (fun a -> a ** exponent) t
   let log t = map_elementwise log t
   let exp t = map_elementwise exp t
   let sin t = map_elementwise sin t
@@ -260,7 +157,7 @@ module Tensor : T = struct
     | Matrix m ->
         let rows = Array.length m and cols = Array.length m.(0) in
         Matrix (Array.init cols (fun i -> Array.init rows (fun j -> m.(j).(i))))
-    | _ -> failwith "Transpose is only applicable for matrices."
+    | _ -> failwith "err."
 
   (* Negate *)
   let negate t = map_elementwise (fun x -> -.x) t
@@ -271,13 +168,7 @@ module Tensor : T = struct
     | Scalar a -> Vector [| a |]
     | Vector v -> Vector v
     | Matrix m ->
-        let rows = Array.length m
-        and cols = if Array.length m > 0 then Array.length m.(0) else 0 in
-        let flat_array = Array.make (rows * cols) 0.0 in
-        for i = 0 to rows - 1 do
-          Array.blit m.(i) 0 flat_array (i * cols) cols
-        done;
-        Vector flat_array
+        Vector (Array.concat (Array.fold_left (fun acc x -> x :: acc) [] m))
 
   (* Sum *)
   let sum t =

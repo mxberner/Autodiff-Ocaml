@@ -4,6 +4,5 @@
   errors
   function
   optimize
-  reverse_differentiation
  )
  (name ml))
