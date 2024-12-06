@@ -1,7 +1,6 @@
-(* errors.mli *)
+(* errors.ml *)
 
-(* Some common errors when operating with n-dimensional tensors *)
-module Errors : sig
+module Errors = struct
   exception DimensionMismatch of string
   exception InvalidArgument of string
   exception DivisionByZero

@@ -16,4 +16,4 @@ let () =
       Differentiation.gradient func input |> print_float
     *)
       | _ -> eprintf "Invalid arguments\n"
-  end
+      
