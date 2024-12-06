@@ -1,4 +1,4 @@
-module type CF = sig
+(* module type CF = sig
   type t
   type f = t -> int -> t * int
   (* Function takes a variable and id_counter, returns a variable and updated id_counter *)
@@ -13,4 +13,4 @@ module type CF = sig
   (** Represents a for loop construct. *)
 end
 
-module ControlFlow: CF
+module ControlFlow: CF *)

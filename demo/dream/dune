@@ -1,5 +1,4 @@
 (executable
  (public_name dream_demo)
  (name dream_demo)
- (modules_without_implementation dream_demo)
  (libraries dream))
