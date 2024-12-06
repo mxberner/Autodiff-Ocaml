@@ -26,7 +26,6 @@ module type Tensor = sig
   val ( * ) : t -> t -> t
   val ( / ) : t -> float -> t
 end
-
 module type Errors = sig
   exception DimensionMismatch of string
   exception InvalidArgument of string
@@ -52,8 +51,7 @@ module type ControlFlow = sig
   val for_loop : t -> t -> f -> t
 end
 
-(* We implement a reverse differentiation module because it is more efficienct for certain functions *)
-module type RD = sig
+module type F = sig
   include Tensor
   include Function with type t := t
   include ControlFlow with type t := t
@@ -74,4 +72,4 @@ module type RD = sig
   (** Allows for the saving and restoring of computation graphs to manage memory usage. *)
 end
 
-module ReverseDifferentiation: RD
+module ForwardDifferentiation: F

@@ -27,6 +27,11 @@ module type T = sig
   val div : t -> float -> t
   (** Element-wise division of two values. Raises DivisionByZero*)
 
+  val less : t -> t -> t
+  (** Element-wise less than*)
+
+  val equal : t -> t -> t
+
   val dot : t -> t -> t
   (** Dot product of two values. For matrices, this represents matrix multiplication. *)
 
@@ -60,7 +65,7 @@ module type T = sig
   val flatten : t -> t
   (** Flattens the value into a one-dimensional array. *)
 
-  val sum : t -> t
+  val sum : t -> float
   (** Sums all elements of the value, returning a scalar value. *)
 
   (* Operator overloading for custom operations on matrices *)

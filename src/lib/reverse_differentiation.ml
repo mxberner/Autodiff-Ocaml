@@ -45,11 +45,12 @@ end
 
 module type ControlFlow = sig
   type t
-  type f = t -> t
+  type f = t -> int -> t * int
+  (* Function takes a variable and id_counter, returns a variable and updated id_counter *)
 
   val if_then_else : (t -> bool) -> f -> f -> f
-  val while_loop : (t -> bool) -> f -> t -> t
-  val for_loop : t -> t -> f -> t
+  val while_loop : (t -> bool) -> f -> t -> int -> t * int
+  val for_loop : t -> t -> f -> int -> t * int
 end
 
 (* We implement a reverse differentiation module because it is more efficienct for certain functions *)
@@ -73,5 +74,3 @@ module type RD = sig
   val checkpoint : f -> f
   (** Allows for the saving and restoring of computation graphs to manage memory usage. *)
 end
-
-module ReverseDifferentiation: RD
