@@ -83,13 +83,11 @@ module Tensor : T = struct
       | Scalar a, Scalar b -> Scalar (f a b)
       | Vector v1, Vector v2 ->
           Vector (Array.init (Array.length v1) (fun i -> f v1.(i) v2.(i)))
-      | Matrix m1, Matrix m2 -> (
-          match shape1 with
-          | { rows; cols } ->
-              Matrix
-                (Array.init rows (fun i ->
-                     Array.init cols (fun j -> f m1.(i).(j) m2.(i).(j))))
-          | _ -> failwith "err")
+      | Matrix m1, Matrix m2 ->
+          let { rows; cols } = shape1 in
+          Matrix
+            (Array.init rows (fun i ->
+                 Array.init cols (fun j -> f m1.(i).(j) m2.(i).(j))))
       | _ -> failwith "err"
 
   (* Element-wise addition *)
