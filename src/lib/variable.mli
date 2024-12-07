@@ -25,6 +25,15 @@ val mul : v -> v -> v
 val div : v -> v -> v
 (* Create the variable that results from dividing two variables *)
 
+val sin : v -> v
+(* Sine of the variable *)
+
+val cos : v -> v
+(* Cosine of the variable *)
+
+val tan : v -> v
+(* Tangent of the variable *)
+
 val gradients : v -> float VariableHashtbl.t
 (* Compute the *local gradients* of all the variable *)
 

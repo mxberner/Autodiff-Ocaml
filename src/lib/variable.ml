@@ -20,7 +20,7 @@ let create_variable value local_gradients =
   { id; value; local_gradients }
 
 let neg a =
-  let value = a.value *. -1.0 in
+  let value = -1.0 *. a.value in
   let local_gradients = [ (a, -1.0) ] in
   create_variable value local_gradients
 
@@ -49,6 +49,27 @@ let mul a b =
   create_variable value local_gradients
 
 let div a b = mul a @@ inv b
+
+let sin a =
+  let value = sin a.value in
+  let local_gradients = [ (a, cos a.value) ] in
+  create_variable value local_gradients
+
+let cos a =
+  let value = cos a.value in
+  let local_gradients = [ (a, -1.0 *. Float.(sin a.value)) ] in
+  create_variable value local_gradients
+
+let tan a =
+  let value = tan a.value in
+  let sec = 1.0 /. Float.(cos a.value) in
+  let local_gradients = [ (a, Float.(sec *. sec)) ] in
+  create_variable value local_gradients
+
+let exp a =
+  let value = exp a.value in
+  let local_gradients = [ (a, a.value) ] in
+  create_variable value local_gradients
 
 let gradients variable : float VariableHashtbl.t =
   let gradients = VariableHashtbl.create 50 in
