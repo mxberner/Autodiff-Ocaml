@@ -9,8 +9,8 @@
   src/lib/errors.mli
   src/lib/function.mli
   src/lib/optimize.mli
-  src/lib/reverse_differentiation.mli
   src/lib/tensor.mli
+  src/lib/variable.mli
   src/lib/dune
   test/dune)
  (action
