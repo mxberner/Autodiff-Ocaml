@@ -1,5 +1,7 @@
 (* 
 
+Possible implementation of taking in inputs -> computational graph 
+
 EXAMPLE USAGE: parts would be roughly defined in utop like so. 
 
 let a = Tensor_Node.create 5  
