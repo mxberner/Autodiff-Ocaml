@@ -12,7 +12,8 @@
 
 (library
  (name tensor)
- (modules tensor))
+ (modules tensor)
+ (libraries variable))
 
 (library
  (name variable)

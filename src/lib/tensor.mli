@@ -1,5 +1,7 @@
+open Variable
+
 (* The main data type we'll run operations on *)
-type t = Scalar of float | Vector of float array | Matrix of float array array
+type t = Scalar of v | Vector of v array | Matrix of v array array
 type s = { rows : int; cols : int }
 
 val shape : t -> s
@@ -16,10 +18,10 @@ val ones : int list -> t
 val random : ?seed:int -> int list -> t
 (** Generates a value with random entries, given the specified dimensions and an optional seed. *)
 
-val map : (float -> float) -> t -> t
+val map : (v -> v) -> t -> t
 
 (* map f a applies function f to all the elements of a, and builds an array with the results returned by f: [| f a.(0); f a.(1); ...; f a.(length a - 1) |]. *)
-val map2 : (float -> float -> float) -> t -> t -> t
+val map2 : (v -> v -> v) -> t -> t -> t
 (* map2 f a b applies function f to all the elements of a and b, and builds an array with the results returned by f: [| f a.(0) b.(0); ...; f a.(length a - 1) b.(length b - 1)|]. *)
 
 val add : t -> t -> t
@@ -66,7 +68,7 @@ val reshape : t -> int list -> t
 val transpose : t -> t
 (** Transposes the value (only applicable for matrices). *)
 
-val negate : t -> t
+val neg : t -> t
 (** Negates each element of the value. *)
 
 val flatten : t -> t
