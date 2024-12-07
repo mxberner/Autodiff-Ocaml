@@ -1,7 +1,7 @@
 (rule
  (target project.zip)
  (deps
-  bin/diffd.ml
+  bin/main.ml
   bin/dune
   src/lib/ad.mli
   src/lib/control_flow.mli

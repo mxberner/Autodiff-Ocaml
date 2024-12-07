@@ -9,7 +9,7 @@ end)
 
 let variable_counter : int ref = ref 0
 
-let create value =
+let make value =
   let id = !variable_counter in
   variable_counter := !variable_counter + 1;
   { id; value; local_gradients = [] }
@@ -18,6 +18,16 @@ let create_variable value local_gradients =
   let id = !variable_counter in
   variable_counter := !variable_counter + 1;
   { id; value; local_gradients }
+
+let neg a =
+  let value = a.value *. -1.0 in
+  let local_gradients = [ (a, -1.0) ] in
+  create_variable value local_gradients
+
+let inv a =
+  let value = 1. /. a.value in
+  let local_gradients = [ (a, -1.0 /. (a.value ** 2.0)) ] in
+  create_variable value local_gradients
 
 let add a b =
   let value = a.value +. b.value in
@@ -31,29 +41,14 @@ let add a b =
   in
   create_variable value local_gradients
 
-let sub a b =
-  let value = a.value -. b.value in
-  let local_gradients =
-    [
-      (a, 1.0);
-      (* The derivative with respect to a is 1 *)
-      (b, -1.0);
-      (* The derivative with respect to b is 1 *)
-    ]
-  in
-  create_variable value local_gradients
+let sub a b = add a @@ neg b
 
 let mul a b =
   let value = a.value *. b.value in
   let local_gradients = [ (a, b.value); (b, a.value) ] in
   create_variable value local_gradients
 
-let div a b =
-  let value = a.value *. b.value in
-  let local_gradients =
-    [ (a, 1.0 /. b.value); (b, -.a.value /. (b.value ** 2.0)) ]
-  in
-  create_variable value local_gradients
+let div a b = mul a @@ inv b
 
 let gradients variable : float VariableHashtbl.t =
   let gradients = VariableHashtbl.create 50 in

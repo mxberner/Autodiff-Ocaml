@@ -1,12 +1,17 @@
 type v = { id : int; value : float; local_gradients : (v * float) list }
 
-
 module VariableHashtbl : sig
   type 'a t
 end
 
-val create : float -> v
+val make : float -> v
 (* Create the variable from a float *)
+
+val neg : v -> v
+(* Negate the variable *)
+
+val inv : v -> v
+(* Invert the variable *)
 
 val add : v -> v -> v
 (* Create the variable that results from adding two variables *)
