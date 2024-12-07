@@ -58,18 +58,20 @@ let map2 f t1 t2 =
     | _ -> failwith "err"
 
 (* Element-wise addition *)
-let add t1 t2 = map2 (fun a b -> a + b) t1 t2
+let add t1 t2 = map2 ( + ) t1 t2
 
 (* Element-wise subtraction *)
-let sub t1 t2 = map2 (fun a b -> a - b) t1 t2
+let sub t1 t2 = map2 ( - ) t1 t2
 
 (* Element-wise multiplication *)
-let mul t1 t2 = map2 (fun a b -> a * b) t1 t2
+let mul t1 t2 = map2 ( * ) t1 t2
 
 (* Division by scalar *)
 let div t scalar =
-  if scalar = 0.0 then failwith "DivisionByZero"
-  else map (fun x -> x / make scalar) t
+  if scalar = make 0.0 then failwith "DivisionByZero"
+  else map (fun x -> x / scalar) t
+
+(* let equal t1 t2 = map (fun a b -> equal a b) t1 t2 *)
 
 (* Sum *)
 let sum t =
@@ -93,6 +95,15 @@ let dot t1 t2 =
   else
     match (t1, t2) with
     | Vector _, Vector _ -> Scalar (make @@ sum @@ mul t1 t2)
+    | _ -> failwith "Dot product is only defined for vectors or matrices."
+
+(* Matrix product *)
+let matmul t1 t2 =
+  let { rows = r1; cols = c1 } = shape t1
+  and { rows = r2; cols = c2 } = shape t2 in
+  if not ((r1 = r2 && c1 = c2) || c1 = r2) then failwith "err"
+  else
+    match (t1, t2) with
     | Matrix m1, Matrix m2 ->
         Matrix
           (Array.init r1 (fun i ->

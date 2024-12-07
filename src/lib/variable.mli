@@ -52,13 +52,15 @@ val mul : v -> v -> v
 val div : v -> v -> v
 (* Create the variable that results from dividing two variables *)
 
+val equal: v -> v -> bool
+(* Check if two variables are the same *)
+
 val gradients : v -> float VariableHashtbl.t
 (* Compute the *local gradients* of all the variable *)
 
 val find : float VariableHashtbl.t -> v -> float
 (* Find the local gradient of a variable *)
 
-val ( < ) : v -> v -> v
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
