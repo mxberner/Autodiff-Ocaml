@@ -71,16 +71,19 @@ let div t scalar =
   if scalar = 0.0 then failwith "DivisionByZero"
   else map (fun x -> x / make scalar) t
 
-
 (* Sum *)
 let sum t =
-  match t with
-  | Scalar a -> a
-  | Vector v -> Array.fold_left ( + ) zero v
-  | Matrix m ->
-      Array.fold_left
-        (fun acc row -> acc + Array.fold_left ( + ) zero row)
-        zero m
+  let compute _ =
+    match t with
+    | Scalar a -> a
+    | Vector v -> Array.fold_left ( + ) zero v
+    | Matrix m ->
+        Array.fold_left
+          (fun acc row -> acc + Array.fold_left ( + ) zero row)
+          zero m
+  in
+  let res = compute () in
+  res.value
 
 (* Dot product *)
 let dot t1 t2 =
@@ -89,13 +92,15 @@ let dot t1 t2 =
   if not ((r1 = r2 && c1 = c2) || c1 = r2) then failwith "err"
   else
     match (t1, t2) with
-    | Vector _, Vector _ -> Scalar (sum @@ mul t1 t2)
+    | Vector _, Vector _ -> Scalar (make @@ sum @@ mul t1 t2)
     | Matrix m1, Matrix m2 ->
         Matrix
           (Array.init r1 (fun i ->
                Array.init c2 (fun j ->
-                   sum
-                     (Vector (Array.init c1 (fun k -> m1.(i).(k) * m2.(k).(j)))))))
+                   make
+                     (sum
+                        (Vector
+                           (Array.init c1 (fun k -> m1.(i).(k) * m2.(k).(j))))))))
     | _ -> failwith "Dot product is only defined for vectors or matrices."
 
 (* Element-wise power *)

@@ -36,10 +36,10 @@ val mul : t -> t -> t
 val div : t -> float -> t
 (** Element-wise division of two values. Raises DivisionByZero*)
 
-val less : t -> t -> t
+(* val less : t -> t -> t
 (** Element-wise less than*)
 
-val equal : t -> t -> t
+val equal : t -> t -> t *)
 
 val dot : t -> t -> t
 (** Dot product of two values. For matrices, this represents matrix multiplication. *)

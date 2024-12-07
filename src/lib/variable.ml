@@ -14,8 +14,8 @@ let make ?(local_gradients = []) value =
   variable_counter := !variable_counter + 1;
   { id; value; local_gradients }
 
-let zero _ = make 0.0
-let one _ = make 1.0
+let zero = make ~local_gradients:[] 0.0
+let one = make ~local_gradients:[] 1.
 
 let random ?seed () =
   let () = match seed with Some s -> Random.init s | None -> () in

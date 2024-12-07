@@ -113,8 +113,8 @@ module Test = struct
     assert_equal zeros_matrix @@ T.map2 f ones_matrix ones_matrix
 
   let test_7_dot _ =
-    assert_equal (T.Scalar zero) @@ T.dot zeros_vector zeros_vector;
-    assert_equal (T.Scalar zero) @@ T.dot ones_vector zeros_vector;
+    assert_equal (T.Scalar (make 0.0)) @@ T.dot zeros_vector zeros_vector;
+    assert_equal (T.Scalar (make 0.0)) @@ T.dot ones_vector zeros_vector;
     assert_equal (T.Scalar (make 4.0)) @@ T.dot ones_vector ones_vector;
     assert_equal test_matrix_3 @@ T.dot test_matrix_1 test_matrix_2;
     assert_equal test_matrix_6 @@ T.dot test_matrix_4 test_matrix_5
