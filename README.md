@@ -10,7 +10,7 @@ Automatic differentiation is an algorithm used to evaluate derivatives of functi
 
     What's Working: Our Tensor and Variable modules are implemented, with tests. 
 
-    What's Not: We have an untested parser, our methods of differentation aren't fully implemented, and we still don't have a product that interfaces through either a web or a command-line interface.  
+    What's Not: We have an untested parser, our methods of forward and reverse differentation aren't fully implemented, and we still don't have a product that interfaces through either a web or a command-line interface. Overall we still need to figure out the exact process of how we want to parse inputs and produce a result through our autodiff method. 
 
 ## Run
 
