@@ -142,7 +142,7 @@ let print_graph graph =
          (String.concat ", " (List.map string_of_int node.inputs)))
     sorted_graph
 
-(* Visualize the graph as a tree-like structure *)
+(* For visulizong the graph as a tree *)
 let visualize_graph graph =
   let rec aux node_id depth =
     let node = List.find (fun n -> n.id = node_id) graph in
