@@ -8,8 +8,12 @@
   function
   optimize
   reverse_differentiation)
- (modules_without_implementation function optimize errors))
+ (modules_without_implementation function optimize reverse_differentiation))
 
 (library
  (name tensor)
  (modules tensor))
+
+(library
+ (name variable)
+ (modules variable))
