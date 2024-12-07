@@ -33,16 +33,19 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 (** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
-val div : t -> float -> t
+val div : t -> v -> t
 (** Element-wise division of two values. Raises DivisionByZero*)
 
 (* val less : t -> t -> t
 (** Element-wise less than*)
-
-val equal : t -> t -> t *)
+*)
+(* val equal : t -> t -> bool  *)
 
 val dot : t -> t -> t
-(** Dot product of two values. For matrices, this represents matrix multiplication. *)
+(** Dot product of two vectors. *)
+
+val matmul : t -> t -> t
+(** Matrix multiplication product of two matrices. *)
 
 val pow : t -> float -> t
 (** Raises each element of the value to the specified power. *)
@@ -81,4 +84,4 @@ val sum : t -> float
 val ( + ) : t -> t -> t
 val ( - ) : t -> t -> t
 val ( * ) : t -> t -> t
-val ( / ) : t -> float -> t
+val ( / ) : t -> v -> t

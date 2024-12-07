@@ -82,12 +82,8 @@ let mul a b =
   make value ~local_gradients
 
 let div a b = mul a @@ inv b
-let float_of_bool b = if b then 1.0 else 0.0
 
-let less a b =
-  let value = float_of_bool (a.value < b.value) in
-  let local_gradients = [ (a, b.value); (b, a.value) ] in
-  make value ~local_gradients
+let equal a b = a = b
 
 let gradients variable : float VariableHashtbl.t =
   let gradients = VariableHashtbl.create 50 in
@@ -107,12 +103,13 @@ let gradients variable : float VariableHashtbl.t =
   compute_gradients variable 1.0;
   gradients
 
-let ( < ) = less
 let ( + ) = add
 let ( - ) = sub
 let ( * ) = mul
 let ( / ) = div
 let ( ** ) = pow
+
+(* let ( = ) = equal *)
 
 let find gradients a =
   try VariableHashtbl.find gradients a with Not_found -> 0.0

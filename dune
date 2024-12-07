@@ -2,11 +2,9 @@
  (target project.zip)
  (deps
   bin/main.ml
-  bin/dune
   src/lib/ad.mli
   src/lib/forward_differentiation.mli
   src/lib/errors.mli
-  src/lib/function.mli
   src/lib/optimize.mli
   src/lib/tensor.mli
   src/lib/variable.mli
