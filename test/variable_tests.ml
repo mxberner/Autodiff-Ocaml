@@ -4,9 +4,6 @@ open OUnit2
 module Test = struct
   open Variable
 
-
-  (* let zero = V.create 0.0
-     let one = V.create 1.0 *)
   let a = make 4.0
   let b = make 3.0
   let f1 x y = (x + y) * x

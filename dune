@@ -4,7 +4,6 @@
   bin/main.ml
   bin/dune
   src/lib/ad.mli
-  src/lib/control_flow.mli
   src/lib/forward_differentiation.mli
   src/lib/errors.mli
   src/lib/function.mli
