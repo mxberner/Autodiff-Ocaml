@@ -76,12 +76,12 @@ module Test = struct
     assert_equal (get_shape 4 3) @@ T.shape zeros_matrix
 
   let test_2_zeros _ =
-    assert_equal empty @@ T.zeros [];
+    assert_equal (T.Scalar 0.0) @@ T.zeros [];
     assert_equal zeros_vector @@ T.zeros [ 4 ];
     assert_equal zeros_matrix @@ T.zeros [ 4; 3 ]
 
   let test_3_ones _ =
-    assert_equal empty @@ T.ones [];
+    assert_equal (T.Scalar 1.0) @@ T.ones [];
     assert_equal ones_vector @@ T.ones [ 4 ];
     assert_equal ones_matrix @@ T.ones [ 4; 3 ]
 
@@ -103,11 +103,17 @@ module Test = struct
     assert_equal zeros_matrix @@ T.map2 f ones_matrix ones_matrix
 
   let test_7_dot _ =
-    assert_equal (T.Scalar 0.0) @@ T.dot zeros_vector zeros_vector;
-    assert_equal (T.Scalar 0.0) @@ T.dot ones_vector zeros_vector;
-    assert_equal (T.Scalar 4.0) @@ T.dot ones_vector ones_vector;
-    assert_equal test_matrix_3 @@ T.dot test_matrix_1 test_matrix_2;
-    assert_equal test_matrix_6 @@ T.dot test_matrix_4 test_matrix_5
+    let product a b =
+      let res = T.dot a b in
+      match res with Scalar s -> s | _ -> failwith "error"
+    in
+    assert_equal 0.0 @@ product zeros_vector zeros_vector;
+    assert_equal 0.0 @@ product ones_vector zeros_vector;
+    assert_equal 4.0 @@ product ones_vector ones_vector
+
+  let test_8_matmul _ =
+    assert_equal test_matrix_3 @@ T.matmul test_matrix_1 test_matrix_2;
+    assert_equal test_matrix_6 @@ T.matmul test_matrix_4 test_matrix_5
 
   let series =
     "Given tests"
@@ -119,6 +125,7 @@ module Test = struct
            "5 - map" >:: test_5_map;
            "6 - map2" >:: test_6_map2;
            "7 - dot" >:: test_7_dot;
+           "8 - matmul" >:: test_8_matmul;
          ]
 end
 
