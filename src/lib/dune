@@ -1,14 +1,12 @@
 (library
  (name ad)
- (modules
-  ad
-  control_flow
-  forward_differentiation
-  errors
-  function
-  optimize
-  reverse_differentiation)
- (modules_without_implementation function optimize reverse_differentiation))
+ (modules ad forward_differentiation errors optimize)
+ (modules_without_implementation optimize))
+
+(library
+ (name reverse_differentiation)
+ (modules reverse_differentiation)
+ (libraries tensor variable))
 
 (library
  (name tensor)
@@ -16,4 +14,10 @@
 
 (library
  (name variable)
- (modules variable))
+ (modules variable)
+ (libraries tensor))
+
+(library
+ (name vis)
+ (modules vis)
+ (libraries core tensor))
