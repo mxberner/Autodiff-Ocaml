@@ -1,8 +1,12 @@
+
+(* Define tensor type, which can be a Scalar, Vector, or Matrix *)
 type t = Scalar of float | Vector of float array | Matrix of float array array
 [@@deriving equal]
 
+(* Define type for representing shape of tensors (rows and columns) *)
 type s = { rows : int; cols : int }
 
+(** Returns [shape] {rows,cols} *)
 let shape (tensor : t) : s =
   match tensor with
   | Scalar _ -> { rows = 0; cols = 0 }

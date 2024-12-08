@@ -1,87 +1,122 @@
-(* The main data type we'll run operations on *)
+(* 
+tensor.mli
+This module defines operations on tensors, which can be scalars, vectors, or matrices. *)
+
 type t = Scalar of float | Vector of float array | Matrix of float array array
 type s = { rows : int; cols : int }
+(** [t] is a type representing a tensor, which can either be a Scalar (a single number),
+    a Vector (a 1D array of numbers), or a Matrix (a 2D array of numbers).
+    [s] represents the shape of a tensor, number of rows and columns. *)
 
 val shape : t -> s
-(** The type representing numerical values, which could be scalars, vectors, or matrices. *)
-
-(** Returns the dimensions of the value {rows; cols}. *)
+(** [shape tensor] returns the dimensions of the tensor, 
+    record with [rows] and [cols] fields. *)
 
 val zeros : int list -> t
-(** Creates a n x n tensor value filled with zeros, given the specified dimensions. *)
+(** [zeros dims] creates a tensor (scalar, vector, or matrix) with the specified 
+    dimensions, filled with zeros. 
+
+    {examples}
+    - [zeros [3]] creates a vector of length 3 filled with zeros, 
+    - [zeros [2; 3]] creates a 2x3 matrix filled with zeros. *)
 
 val ones : int list -> t
-(** Creates a n x n tensor value filled with ones, given the specified dimensions. *)
+(** [ones dims] creates a tensor (scalar, vector, or matrix) with the specified 
+    dimensions, filled with ones. 
+
+    {examples}
+    - [ones [3]] creates a vector of length 3 filled with ones, 
+    - [ones [2; 3]] creates a 2x3 matrix filled with ones. *)
 
 val random : ?seed:int -> int list -> t
-(** Generates a value with random entries, given the specified dimensions and an optional seed. *)
+(** [random ?seed dims] creates a tensor (scalar, vector, or matrix) with random 
+    values, where [dims] specifies the dimensions of the tensor. 
+    Optionally, [seed] can be provided to control the randomness. *)
 
 val map : (float -> float) -> t -> t
+(** [map f tensor] applies the function [f] element-wise to each element of the 
+    tensor [tensor], and returns a new tensor with the results. *)
 
-(* map f a applies function f to all the elements of a, and builds an array with the results returned by f: [| f a.(0); f a.(1); ...; f a.(length a - 1) |]. *)
 val map2 : (float -> float -> float) -> t -> t -> t
-(* map2 f a b applies function f to all the elements of a and b, and builds an array with the results returned by f: [| f a.(0) b.(0); ...; f a.(length a - 1) b.(length b - 1)|]. *)
+(** [map2 f tensor1 tensor2] applies the function [f] element-wise to corresponding 
+    elements of [tensor1] and [tensor2], and returns a new tensor with the results.*)
 
 val add : t -> t -> t
-(** Element-wise addition of two values. Raises DimensionMismatch if shapes are incompatible. *)
+(** [add tensor1 tensor2] performs element-wise addition of the two tensors.*)
 
 val sub : t -> t -> t
-(** Element-wise subtraction of two values. Raises DimensionMismatch if shapes are incompatible. *)
+(** [sub tensor1 tensor2] performs element-wise subtraction of the second tensor 
+    from the first.*)
 
 val mul : t -> t -> t
-(** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
+(** [mul tensor1 tensor2] performs element-wise multiplication of the two tensors.*)
 
 val div : t -> float -> t
-(** Element-wise division of two values. Raises DivisionByZero*)
-
-(* val less : t -> t -> t
-   (** Element-wise less than*)
-*)
-val equal : t -> t -> bool 
- (** Equal*)
-
-val dot : t -> t -> t
-(** Dot product of two vectors. *)
-
-val matmul : t -> t -> t
-(** Matrix multiplication product of two matrices. *)
+(** [div tensor scalar] divides each element of the tensor by the scalar value. 
+    Raises an exception if attempting to divide by zero. *)
 
 val pow : t -> float -> t
-(** Raises each element of the value to the specified power. *)
+(** [pow tensor exponent] raises each element of the tensor to the power of [exponent]. *)
 
 val log : t -> t
-(** Applies the natural logarithm element-wise. *)
+(** [log tensor] applies the natural logarithm element-wise to each element of the tensor. 
+    This is only valid for positive values. *)
 
 val exp : t -> t
-(** Applies the exponential function element-wise. *)
+(** [exp tensor] applies the exponential function (e^x) element-wise to each element of 
+    the tensor. *)
 
 val sin : t -> t
-(** Applies the sine function element-wise. *)
+(** [sin tensor] applies the sine function element-wise to each element of the tensor. *)
 
 val cos : t -> t
-(** Applies the cosine function element-wise. *)
+(** [cos tensor] applies the cosine function element-wise to each element of the tensor. *)
 
 val tan : t -> t
-(** Applies the tangent function element-wise. *)
+(** [tan tensor] applies the tangent function element-wise to each element of the tensor. *)
+
+val equal : t -> t -> bool
+(** [equal tensor1 tensor2] checks whether the two tensors are element-wise equal. 
+    Returns true if they are equal, false otherwise. *)
+
+val dot : t -> t -> t
+(** [dot tensor1 tensor2] computes the dot product of two vectors. *)
+
+val matmul : t -> t -> t
+(** [matmul tensor1 tensor2] performs matrix multiplication on two matrices. 
+    The number of columns in the first matrix must match the number of rows in the 
+    second matrix. *)
 
 val reshape : t -> int list -> t
-(** Reshapes the value to the specified dimensions. *)
+(** [reshape tensor dims] reshapes the tensor to the specified dimensions. 
+    UNSUPPORTED *)
 
 val transpose : t -> t
-(** Transposes the value (only applicable for matrices). *)
+(** [transpose tensor] transposes the tensor. This operation is only applicable for matrices, 
+    swapping rows and columns. *)
 
 val neg : t -> t
-(** Negates each element of the value. *)
+(** [neg tensor] negates each element of the tensor, i.e., multiplies each element by -1. *)
 
 val flatten : t -> t
-(** Flattens the value into a one-dimensional array. *)
+(** [flatten tensor] flattens the tensor into a one-dimensional vector, regardless of its 
+    original shape. *)
 
 val sum : t -> float
-(** Sums all elements of the value, returning a scalar value. *)
+(** [sum tensor] computes the sum of all elements in the tensor, returning a scalar value. *)
 
-(* Operator overloading for custom operations on matrices *)
+(* Operator overloading *)
 val ( + ) : t -> t -> t
+(** [tensor1 + tensor2] performs element-wise addition of the two tensors. *)
+
 val ( - ) : t -> t -> t
+(** [tensor1 - tensor2] performs element-wise subtraction of the two tensors. *)
+
 val ( * ) : t -> t -> t
+(** [tensor1 * tensor2] performs element-wise multiplication of the two tensors. *)
+
 val ( / ) : t -> float -> t
+(** [tensor / scalar] divides each element of the tensor by the scalar. *)
+
 val ( = ) : t -> t -> bool
+(** [tensor1 = tensor2] checks whether the two tensors are element-wise equal. *)
