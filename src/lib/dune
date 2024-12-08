@@ -1,7 +1,7 @@
 (library
  (name ad)
  (modules ad forward_differentiation errors optimize)
- (modules_without_implementation optimize))
+ (modules_without_implementation optimize forward_differentiation))
 
 (library
  (name reverse_differentiation)
