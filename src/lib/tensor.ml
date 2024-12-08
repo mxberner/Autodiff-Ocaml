@@ -58,19 +58,53 @@ let map2 f t1 t2 =
                Array.init cols (fun j -> f m1.(i).(j) m2.(i).(j))))
     | _ -> failwith "err"
 
-(* Element-wise addition *)
-let add t1 t2 = map2 ( +. ) t1 t2
 
-(* Element-wise subtraction *)
-let sub t1 t2 = map2 ( -. ) t1 t2
 
-(* Element-wise multiplication *)
-let mul t1 t2 = map2 ( *. ) t1 t2
+(**[-----ELEMENT WISE OPERATIONS-----]*)
 
-(* Division by scalar *)
+(* Ensure the shapes are compatible for operation *)
+(*let check_shape_compatibility t1 t2 =
+  match (t1, t2) with
+  | (Vector v1, Vector v2) when Array.length v1 = Array.length v2 -> ()
+  | _ -> raise (Failure "DimensionMismatch")*)
+
+(**[add] element-wise.]*)
+let add t1 t2 =
+  map2 ( +. ) t1 t2
+
+(**[subtract] element-wise.]*)
+let sub t1 t2 =
+  map2 ( -. ) t1 t2
+
+(**[multiply] element-wise.]*)
+let mul t1 t2 =
+  map2 ( *. ) t1 t2
+
+(**[divide] element-wise.]*)
 let div t scalar =
   if scalar = 0.0 then failwith "DivisionByZero"
   else map (fun x -> x /. scalar) t
+
+(**[power] element-wise.]*)
+let pow t exponent = map (fun a -> a ** exponent) t
+
+(**[logarithmic] element-wise.]*)
+let log t = map log t
+
+(**[exp] element-wise.]*)
+let exp t = map exp t
+
+(**[sine] element-wise.]*)
+let sin t = map sin t
+
+(**[cosine] element-wise.]*)
+let cos t = map cos t
+
+(**[tangent] element-wise.]*)
+let tan t = map tan t
+
+(**[-^^^-ELEMENT WISE OPERATIONS-^^^-]*)
+
 
 let float_of_bool b = if b then 1.0 else 0.0
 
@@ -116,13 +150,7 @@ let matmul t1 t2 =
                      (Vector (Array.init c1 (fun k -> m1.(i).(k) *. m2.(k).(j)))))))
     | _ -> failwith "Dot product is only defined for vectors or matrices."
 
-(* Element-wise power *)
-let pow t exponent = map (fun a -> a ** exponent) t
-let log t = map log t
-let exp t = map exp t
-let sin t = map sin t
-let cos t = map cos t
-let tan t = map tan t
+
 
 (* Reshape (not supported) *)
 let reshape _ _ =
