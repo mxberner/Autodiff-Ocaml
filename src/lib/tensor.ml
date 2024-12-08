@@ -14,14 +14,14 @@ let shape (tensor : t) : s =
 
 let zeros (dims : int list) : t =
   match dims with
-  | [] -> Scalar 0.0
+  | [] | [ 0 ] | [ 0; 0 ] -> Scalar 0.0
   | [ n ] -> Vector (Array.make n 0.0)
   | [ rows; cols ] -> Matrix (Array.make_matrix rows cols 0.0)
   | _ -> failwith "Invalid dimensions."
 
 let ones (dims : int list) : t =
   match dims with
-  | [] -> Scalar 1.0
+  | [] | [ 0 ] | [ 0; 0 ] -> Scalar 1.0
   | [ n ] -> Vector (Array.make n 1.0)
   | [ rows; cols ] -> Matrix (Array.make_matrix rows cols 1.0)
   | _ -> failwith "Invalid dimensions."
@@ -30,7 +30,7 @@ let random ?seed (dims : int list) : t =
   let () = match seed with Some s -> Random.init s | None -> () in
   let rand _ = Random.float 1.0 in
   match dims with
-  | [] -> Scalar (Random.float 1.0)
+  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (Random.float 1.0)
   | [ n ] -> Vector (Array.init n rand)
   | [ rows; cols ] -> Matrix (Array.init rows (fun _ -> Array.init cols rand))
   | _ -> failwith "Invalid dimensions."
