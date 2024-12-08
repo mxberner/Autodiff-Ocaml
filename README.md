@@ -22,8 +22,14 @@ A demo of how this library can be used is located in `main.ml`, and can be run u
 
 ```
 git clone https://github.com/mxberner/Autodiff-Ocaml
+```
+```
 cd Autodiff-Ocaml
+```
+```
 dune build
+```
+```
 dune exec app
 ```
 
