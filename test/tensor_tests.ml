@@ -99,8 +99,9 @@ module Test = struct
     let f x = x +. 1.0 in
     assert_equal empty @@ T.map f empty;
     assert_equal ones_vector @@ T.map f zeros_vector;
-    assert_equal ones_matrix @@ T.map f zeros_matrix
-
+    assert_equal ones_matrix @@ T.map f zeros_matrix;
+    let square x = x *. x in
+    assert_equal (T.Vector [| 1.0; 4.0; 9.0 |]) (T.map square (T.Vector [| 1.0; 2.0; 3.0 |]))
   let test_6_map2 _ =
     let f x y = x -. y in
     assert_equal empty @@ T.map2 f empty empty;
@@ -141,6 +142,37 @@ module Test = struct
     let mat_diff_shape = T.Matrix [| [| 1.0 |]; [| 2.0 |] |] in
     assert_equal false @@ T.equal mat1 mat_diff_shape
 
+  let test_10_scalar_operations _ =
+    assert_equal (T.Scalar 1.0) @@ T.add (T.Scalar 0.0) (T.Scalar 1.0);
+    assert_equal (T.Scalar 0.0) @@ T.sub (T.Scalar 1.0) (T.Scalar 1.0);
+    assert_equal (T.Scalar 0.0) @@ T.mul (T.Scalar 0.0) (T.Scalar 1.0);
+    assert_equal (T.Scalar 1.0) @@ T.div (T.Scalar 1.0) 1.0;
+    assert_raises (Failure "DivisionByZero") (fun () -> T.div (T.Scalar 1.0) 0.0)
+
+  let test_11_transpose _ =
+    let mat = T.Matrix [| [| 1.0; 2.0; 3.0 |]; [| 4.0; 5.0; 6.0 |] |] in
+    let transposed = T.transpose mat in
+    assert_equal (T.Matrix [| [| 1.0; 4.0 |]; [| 2.0; 5.0 |]; [| 3.0; 6.0 |] |]) transposed
+
+  let test_12_neg _ =
+    let neg_vector = T.Vector [| -1.0; -2.0; -3.0; -4.0 |] in
+    assert_equal neg_vector @@ T.neg (T.Vector [| 1.0; 2.0; 3.0; 4.0 |]);
+    
+    let neg_matrix = T.Matrix [| [| -1.0; -2.0 |]; [| -3.0; -4.0 |] |] in
+    assert_equal neg_matrix @@ T.neg (T.Matrix [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |])
+
+  let test_13_flatten _ =
+    let flattened_matrix = T.flatten test_matrix_1 in
+    assert_equal (T.Vector [| 1.0; 2.0; 3.0; 3.0; 2.0; 1.0; 1.0; 2.0; 3.0 |]) flattened_matrix;
+    let flattened_vector = T.flatten ones_vector in
+    assert_equal (T.Vector [| 1.0; 1.0; 1.0; 1.0 |]) flattened_vector
+
+  let test_14_sum _ =
+    let sum_matrix = T.sum test_matrix_1 in
+    assert_equal 18.0 sum_matrix;
+    let sum_vector = T.sum ones_vector in
+    assert_equal 4.0 sum_vector
+
   let series =
     "Given tests"
     >::: [
@@ -153,6 +185,11 @@ module Test = struct
            "7 - dot" >:: test_7_dot;
            "8 - matmul" >:: test_8_matmul;
            "9 - basic equality" >:: test_9_basic_equality;
+            "10 - scalar operations" >:: test_10_scalar_operations;
+            "11 - transpose" >:: test_11_transpose;
+            "12 - neg" >:: test_12_neg;
+            "13 - flatten" >:: test_13_flatten;
+            "14 - sum" >:: test_14_sum;
          ]
 end
 
