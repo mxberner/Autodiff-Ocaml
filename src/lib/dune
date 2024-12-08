@@ -10,9 +10,9 @@
 
 (library
  (name tensor)
- (modules tensor)
- (libraries variable))
+ (modules tensor))
 
 (library
  (name variable)
- (modules variable))
+ (modules variable)
+ (libraries tensor))
