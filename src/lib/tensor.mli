@@ -34,13 +34,17 @@ val mul : t -> t -> t
 val div : t -> float -> t
 (** Element-wise division of two values. Raises DivisionByZero*)
 
-val less : t -> t -> t
-(** Element-wise less than*)
-
-val equal : t -> t -> t
+(* val less : t -> t -> t
+   (** Element-wise less than*)
+*)
+val equal : t -> t -> bool 
+ (** Equal*)
 
 val dot : t -> t -> t
-(** Dot product of two values. For matrices, this represents matrix multiplication. *)
+(** Dot product of two vectors. *)
+
+val matmul : t -> t -> t
+(** Matrix multiplication product of two matrices. *)
 
 val pow : t -> float -> t
 (** Raises each element of the value to the specified power. *)
@@ -66,7 +70,7 @@ val reshape : t -> int list -> t
 val transpose : t -> t
 (** Transposes the value (only applicable for matrices). *)
 
-val negate : t -> t
+val neg : t -> t
 (** Negates each element of the value. *)
 
 val flatten : t -> t
@@ -80,3 +84,4 @@ val ( + ) : t -> t -> t
 val ( - ) : t -> t -> t
 val ( * ) : t -> t -> t
 val ( / ) : t -> float -> t
+val ( = ) : t -> t -> bool
