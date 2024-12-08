@@ -1,7 +1,5 @@
-open Variable
-
 (* The main data type we'll run operations on *)
-type t = Scalar of v | Vector of v array | Matrix of v array array
+type t = Scalar of float | Vector of float array | Matrix of float array array
 type s = { rows : int; cols : int }
 
 val shape : t -> s
@@ -18,10 +16,10 @@ val ones : int list -> t
 val random : ?seed:int -> int list -> t
 (** Generates a value with random entries, given the specified dimensions and an optional seed. *)
 
-val map : (v -> v) -> t -> t
+val map : (float -> float) -> t -> t
 
 (* map f a applies function f to all the elements of a, and builds an array with the results returned by f: [| f a.(0); f a.(1); ...; f a.(length a - 1) |]. *)
-val map2 : (v -> v -> v) -> t -> t -> t
+val map2 : (float -> float -> float) -> t -> t -> t
 (* map2 f a b applies function f to all the elements of a and b, and builds an array with the results returned by f: [| f a.(0) b.(0); ...; f a.(length a - 1) b.(length b - 1)|]. *)
 
 val add : t -> t -> t
@@ -33,13 +31,14 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 (** Element-wise multiplication of two values. Raises DimensionMismatch if shapes are incompatible. *)
 
-val div : t -> v -> t
+val div : t -> float -> t
 (** Element-wise division of two values. Raises DivisionByZero*)
 
 (* val less : t -> t -> t
-(** Element-wise less than*)
+   (** Element-wise less than*)
 *)
-(* val equal : t -> t -> bool  *)
+val equal : t -> t -> bool 
+ (** Equal*)
 
 val dot : t -> t -> t
 (** Dot product of two vectors. *)
@@ -84,4 +83,5 @@ val sum : t -> float
 val ( + ) : t -> t -> t
 val ( - ) : t -> t -> t
 val ( * ) : t -> t -> t
-val ( / ) : t -> v -> t
+val ( / ) : t -> float -> t
+val ( = ) : t -> t -> bool

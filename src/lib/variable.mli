@@ -1,11 +1,13 @@
-type v = { id : int; value : float; local_gradients : (v * float) list }
+open Tensor
+
+type v = { id : int; value : t; local_gradients : (v * t) list }
 
 module VariableHashtbl : sig
   type 'a t
 end
 
-val make : ?local_gradients:(v * float) list -> float -> v
-(* Create the variable from a float *)
+val make : ?local_gradients:(v * t) list -> t -> v
+(* Create the variable from a Tensor *)
 
 val zero : v
 (* Create a variable with 0 value*)
@@ -19,8 +21,6 @@ val random : ?seed:int -> unit -> v
 val neg : v -> v
 (* Negate the variable *)
 
-val inv : v -> v
-(* Invert the variable *)
 
 val sin : v -> v
 (* Sine of the variable *)
@@ -49,20 +49,13 @@ val sub : v -> v -> v
 val mul : v -> v -> v
 (* Create the variable that results from multiplying two variables *)
 
-val div : v -> v -> v
-(* Create the variable that results from dividing two variables *)
-
-val equal: v -> v -> bool
-(* Check if two variables are the same *)
-
-val gradients : v -> float VariableHashtbl.t
+val gradients : v -> t VariableHashtbl.t
 (* Compute the *local gradients* of all the variable *)
 
-val find : float VariableHashtbl.t -> v -> float
+val find : t VariableHashtbl.t -> v -> t
 (* Find the local gradient of a variable *)
 
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
-val ( / ) : v -> v -> v
 val ( ** ) : v -> float -> v
