@@ -85,7 +85,11 @@ let sum t =
         0.0 m
 
 let equal t1 t2 =
-  sum (map2 (fun a b -> float_of_bool @@ Float.equal a b) t1 t2) = 1.0
+  let shape1 = shape t1 and shape2 = shape t2 in
+  if shape1 <> shape2 then
+    false  (* Return false if shapes are different *)
+  else
+    sum (map2 (fun a b -> float_of_bool @@ Float.equal a b) t1 t2) = 1.0
 
 (* Dot product *)
 let dot t1 t2 =
@@ -101,7 +105,7 @@ let dot t1 t2 =
 let matmul t1 t2 =
   let { rows = r1; cols = c1 } = shape t1
   and { rows = r2; cols = c2 } = shape t2 in
-  if not ((r1 = r2 && c1 = c2) || c1 = r2) then failwith "err"
+  if c1 <> r2 then failwith "err" (* Matrix dimensions do not match *)
   else
     match (t1, t2) with
     | Matrix m1, Matrix m2 ->

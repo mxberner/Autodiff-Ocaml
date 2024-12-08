@@ -73,7 +73,12 @@ module Test = struct
   let test_1_shape _ =
     assert_equal (get_shape 0 0) @@ T.shape empty;
     assert_equal (get_shape 4 0) @@ T.shape zeros_vector;
-    assert_equal (get_shape 4 3) @@ T.shape zeros_matrix
+    assert_equal (get_shape 4 3) @@ T.shape zeros_matrix;
+    assert_equal (get_shape 0 0) @@ T.shape (T.Scalar 1.0); (* Scalar case *)
+    assert_equal (get_shape 1 3) @@ T.shape (T.Matrix [| [| 1.0; 2.0; 3.0 |] |]); (* Matrix case *)
+    assert_equal (get_shape 3 1) @@ T.shape (T.Matrix [| [| 1.0 |]; [| 2.0 |]; [| 3.0 |] |]); (* Matrix case *)
+    let random_tensor = T.random [4; 4] in
+    assert_equal (get_shape 4 4) @@ T.shape random_tensor
 
   let test_2_zeros _ =
     assert_equal (T.Scalar 0.0) @@ T.zeros [];
@@ -113,7 +118,28 @@ module Test = struct
 
   let test_8_matmul _ =
     assert_equal test_matrix_3 @@ T.matmul test_matrix_1 test_matrix_2;
-    assert_equal test_matrix_6 @@ T.matmul test_matrix_4 test_matrix_5
+    assert_equal test_matrix_6 @@ T.matmul test_matrix_4 test_matrix_5;
+    let mat1 = T.Matrix [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |] in
+    let mat2 = T.Matrix [| [| 5.0; 6.0 |]; [| 7.0; 8.0 |] |] in
+    let result = T.matmul mat1 mat2 in
+    assert_equal (T.Matrix [| [| 19.0; 22.0 |]; [| 43.0; 50.0 |] |]) result;
+    (* Invalid / incompatible shapes *)
+    let invalid_mat = T.Matrix [|[| 1.0 |]|] in
+    assert_raises (Failure "err") (fun () -> T.matmul mat1 invalid_mat)
+
+  let test_9_basic_equality _ =
+    let mat1 = T.Matrix [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |] in
+    let mat2 = T.Matrix [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |] in
+    let mat3 = T.Matrix [| [| 5.0; 6.0 |]; [| 7.0; 8.0 |] |] in
+    (* check equality of equal matrix *)
+    assert_equal false @@ T.equal mat1 mat2;
+
+    (* check inequality of inequal matrix *)
+    assert_equal false @@ T.equal mat1 mat3;
+  
+    (* check equality of differently shaped matrix *)
+    let mat_diff_shape = T.Matrix [| [| 1.0 |]; [| 2.0 |] |] in
+    assert_equal false @@ T.equal mat1 mat_diff_shape
 
   let series =
     "Given tests"
@@ -126,6 +152,7 @@ module Test = struct
            "6 - map2" >:: test_6_map2;
            "7 - dot" >:: test_7_dot;
            "8 - matmul" >:: test_8_matmul;
+           "9 - basic equality" >:: test_9_basic_equality;
          ]
 end
 
