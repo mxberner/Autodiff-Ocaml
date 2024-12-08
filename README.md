@@ -8,10 +8,9 @@ Automatic differentiation is an algorithm used to evaluate derivatives of functi
 
 (Code Checkpoint) Project Progress: 
 
-What's Working: Our Tensor and Variable modules are implemented, with tests. 
+What's done: We made some revisions to the structure of our project as it was planned when we submitted our design document. variable.mli is a scalar-valued implementation of the basics of autodiff, in which we use a hashtable to create an implicit computational graph that we use to calculate gradients. tensor.mli replicates the functions of variable.mli, but in tensor form, rather than the 1D applications of variable.mli. Currently, we haven't worked out implementing higher order functions, but any elementary function is implemented. In terms of usage, a prospective user would use our library to define a function in OCaml syntax, and then be able to calculate various partial derivatives. A demonstration in contained within main.ml, which can be run using dune exec app. Both our tensor and variable modules are also tested. 
 
-What's Not: Some of our tensor tests are failing, namely those to do with the map, map2, and dot functions. We believe this has to do with inexact floating point equality flagging as inequal.
-We have a untested and incomplete parser, and we still don't have a product that interfaces through either a web or a command-line interface. We also haven't fully implemented forward and reverse differentiation. Overall we still need to figure out the exact process of how we want to parse inputs and produce a result through our autodiff method. We also haven't assessed the coverage of our tests. 
+What's Yet to be implemented: We still need to extend the gradient function in out variable module for tensors, which we plan on doing in the forward_differentiation and reverse_differentiation modules. We'll also implement functions for calculating things like the jacobian and the hessian. This will be used to build an optimizer in optimize.ml, which will demonstrate the functionaliyy of our library. We also want to properly visualize this. [We also still need to implement error checking into our library, so that it can reject invalid arguments.] [We also plan to implement ad.ml as a...] [To extend the scope of this project, we also want to build a simple web app that does...]
 
 ## Run
 
