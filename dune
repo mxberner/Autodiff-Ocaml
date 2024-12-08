@@ -1,14 +1,25 @@
-(rule
- (target project.zip)
- (deps
-  bin/main.ml
-  src/lib/ad.mli
-  src/lib/forward_differentiation.mli
-  src/lib/errors.mli
-  src/lib/optimize.mli
-  src/lib/tensor.mli
-  src/lib/variable.mli
-  src/lib/dune
-  test/dune)
- (action
-  (run zip -R project.zip %{deps})))
+(library
+ (name ad)
+ (modules ad forward_differentiation errors optimize)
+ (modules_without_implementation optimize))
+
+(library
+ (name reverse_differentiation)
+ (modules reverse_differentiation)
+ (libraries tensor variable))
+
+(library
+ (name tensor)
+ (modules tensor))
+
+(library
+ (name variable)
+ (modules variable)
+ (libraries tensor))
+
+(library
+ (name vis)
+ (modules vis)
+ (libraries core tensor))
+
+
