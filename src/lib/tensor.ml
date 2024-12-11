@@ -1,12 +1,17 @@
-type t = Scalar of float | Vector of float array | Matrix of float array array
-[@@deriving equal]
+module V = Variable
 
-type s = { rows : int; cols : int }
+type t = Scalar of V.v | Vector of V.v array | Matrix of V.v array array
+type dimension = { rows : int; cols : int }
 
-let shape (tensor : t) : s =
+exception DimensionMismatch of string
+
+let zero _ = V.make 0.0
+let one _ = V.make 1.0
+
+let shape (tensor : t) : dimension =
   match tensor with
   | Scalar _ -> { rows = 0; cols = 0 }
-  | Vector v -> { rows = Array.length v; cols = 0 }
+  | Vector v -> { rows = Array.length v; cols = 1 }
   | Matrix m ->
       let rows = Array.length m in
       if rows = 0 then { rows = 0; cols = 0 }
@@ -14,25 +19,27 @@ let shape (tensor : t) : s =
 
 let zeros (dims : int list) : t =
   match dims with
-  | [] | [ 0 ] | [ 0; 0 ] -> Scalar 0.0
-  | [ n ] -> Vector (Array.make n 0.0)
-  | [ rows; cols ] -> Matrix (Array.make_matrix rows cols 0.0)
+  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (zero ())
+  | [ n ] -> Vector (Array.init n (fun _ -> zero ()))
+  | [ rows; cols ] ->
+      Matrix (Array.init rows (fun _ -> Array.init cols (fun _ -> zero ())))
   | _ -> failwith "Invalid dimensions."
 
 let ones (dims : int list) : t =
   match dims with
-  | [] | [ 0 ] | [ 0; 0 ] -> Scalar 1.0
-  | [ n ] -> Vector (Array.make n 1.0)
-  | [ rows; cols ] -> Matrix (Array.make_matrix rows cols 1.0)
+  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (one ())
+  | [ n ] -> Vector (Array.init n (fun _ -> one ()))
+  | [ rows; cols ] ->
+      Matrix (Array.init rows (fun _ -> Array.init cols (fun _ -> one ())))
   | _ -> failwith "Invalid dimensions."
 
 let random ?seed (dims : int list) : t =
   let () = match seed with Some s -> Random.init s | None -> () in
-  let rand _ = Random.float 1.0 in
   match dims with
-  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (Random.float 1.0)
-  | [ n ] -> Vector (Array.init n rand)
-  | [ rows; cols ] -> Matrix (Array.init rows (fun _ -> Array.init cols rand))
+  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (V.random ())
+  | [ n ] -> Vector (Array.init n (fun _ -> V.random ()))
+  | [ rows; cols ] ->
+      Matrix (Array.init rows (fun _ -> Array.init cols (fun _ -> V.random ())))
   | _ -> failwith "Invalid dimensions."
 
 let map f t =
@@ -42,8 +49,10 @@ let map f t =
   | Matrix m -> Matrix (Array.map (Array.map f) m)
 
 let map2 f t1 t2 =
-  let shape1 = shape t1 and shape2 = shape t2 in
-  if shape1 <> shape2 then failwith "err"
+  let { rows = r1; cols = c1 } = shape t1
+  and { rows = r2; cols = c2 } = shape t2 in
+  if not ((r1 = 0 && c1 = 0) || (r2 = 0 && c2 = 0) || (r1 = r2 && c1 = c2)) then
+    raise (DimensionMismatch (Printf.sprintf "(%d, %d)(%d %d)" r1 c1 r2 c2))
   else
     match (t1, t2) with
     | Scalar a, Scalar b -> Scalar (f a b)
@@ -52,46 +61,36 @@ let map2 f t1 t2 =
     | Vector v1, Vector v2 ->
         Vector (Array.init (Array.length v1) (fun i -> f v1.(i) v2.(i)))
     | Matrix m1, Matrix m2 ->
-        let { rows; cols } = shape1 in
         Matrix
-          (Array.init rows (fun i ->
-               Array.init cols (fun j -> f m1.(i).(j) m2.(i).(j))))
-    | _ -> failwith "err"
+          (Array.init r1 (fun i ->
+               Array.init c1 (fun j -> f m1.(i).(j) m2.(i).(j))))
+    | _ -> failwith "Unable to map values"
 
 (* Element-wise addition *)
-let add t1 t2 = map2 ( +. ) t1 t2
+let add t1 t2 = map2 V.add t1 t2
 
 (* Element-wise subtraction *)
-let sub t1 t2 = map2 ( -. ) t1 t2
+let sub t1 t2 = map2 V.sub t1 t2
 
 (* Element-wise multiplication *)
-let mul t1 t2 = map2 ( *. ) t1 t2
-
-(* Division by scalar *)
-let div t scalar =
-  if scalar = 0.0 then failwith "DivisionByZero"
-  else map (fun x -> x /. scalar) t
-
-let float_of_bool b = if b then 1.0 else 0.0
+let mul t1 t2 = map2 V.mul t1 t2
 
 (* Sum *)
 let sum t =
   match t with
   | Scalar a -> a
-  | Vector v -> Array.fold_left ( +. ) 0.0 v
+  | Vector v -> Array.fold_left V.add (zero ()) v
   | Matrix m ->
       Array.fold_left
-        (fun acc row -> acc +. Array.fold_left ( +. ) 0.0 row)
-        0.0 m
-
-let equal t1 t2 =
-  sum (map2 (fun a b -> float_of_bool @@ Float.equal a b) t1 t2) = 1.0
+        (fun acc row -> V.add acc @@ Array.fold_left V.add (zero ()) row)
+        (zero ()) m
 
 (* Dot product *)
 let dot t1 t2 =
   let { rows = r1; cols = c1 } = shape t1
   and { rows = r2; cols = c2 } = shape t2 in
-  if not ((r1 = r2 && c1 = c2) || c1 = r2) then failwith "err"
+  if not ((r1 = r2 && c1 = c2) || c1 = r2) then
+    raise (DimensionMismatch (Printf.sprintf "(%d, %d)(%d %d)" r1 c1 r2 c2))
   else
     match (t1, t2) with
     | Vector _, Vector _ -> Scalar (sum @@ mul t1 t2)
@@ -101,7 +100,8 @@ let dot t1 t2 =
 let matmul t1 t2 =
   let { rows = r1; cols = c1 } = shape t1
   and { rows = r2; cols = c2 } = shape t2 in
-  if not ((r1 = r2 && c1 = c2) || c1 = r2) then failwith "err"
+  if not ((r1 = r2 && c1 = c2) || c1 = r2) then
+    raise (DimensionMismatch (Printf.sprintf "(%d, %d)(%d %d)" r1 c1 r2 c2))
   else
     match (t1, t2) with
     | Matrix m1, Matrix m2 ->
@@ -109,16 +109,17 @@ let matmul t1 t2 =
           (Array.init r1 (fun i ->
                Array.init c2 (fun j ->
                    sum
-                     (Vector (Array.init c1 (fun k -> m1.(i).(k) *. m2.(k).(j)))))))
-    | _ -> failwith "Dot product is only defined for vectors or matrices."
+                     (Vector
+                        (Array.init c1 (fun k -> V.mul m1.(i).(k) m2.(k).(j)))))))
+    | _ -> failwith "matmul is only defined for matrices."
 
 (* Element-wise power *)
-let pow t exponent = map (fun a -> a ** exponent) t
-let log t = map log t
-let exp t = map exp t
-let sin t = map sin t
-let cos t = map cos t
-let tan t = map tan t
+let pow t exponent = map (fun a -> V.pow a exponent) t
+let log t = map V.log t
+let exp t = map V.exp t
+let sin t = map V.sin t
+let cos t = map V.cos t
+let tan t = map V.tan t
 
 (* Reshape (not supported) *)
 let reshape _ _ =
@@ -133,7 +134,7 @@ let transpose t =
   | _ -> failwith "err."
 
 (* Negate *)
-let neg t = map (fun x -> -1.0 *. x) t
+let neg t = map V.neg t
 
 (* Flatten *)
 let flatten t =
@@ -143,9 +144,39 @@ let flatten t =
   | Matrix m ->
       Vector (Array.concat (Array.fold_left (fun acc x -> x :: acc) [] m))
 
+let print t =
+  match t with
+  | Scalar s -> V.print s
+  | Vector v -> Array.iter V.print v
+  | Matrix m ->
+      Array.iter
+        (fun v ->
+          Array.iter V.print v;
+          print_endline "")
+        m
+
+let float_of_bool b = if b then 1.0 else 0.0
+
+let equal t1 t2 =
+  match (t1, t2) with
+  | Scalar a, Scalar b -> V.equal a b
+  | Vector _, Vector _ | Matrix _, Matrix _ ->
+      let { rows = r1; cols = c1 } = shape t1
+      and { rows = r2; cols = c2 } = shape t2 in
+      if r1 <> r2 || c1 <> c2 then false
+      else
+        let x = Int.mul (max r1 1) (max c1 1) in
+        let y =
+          int_of_float
+            (sum
+               (map2 (fun x y -> V.make @@ float_of_bool (V.equal x y)) t1 t2))
+              .value
+        in
+        x = y
+  | _ -> false
+
 (* Operator overloading *)
 let ( + ) = add
 let ( - ) = sub
 let ( * ) = mul
-let ( / ) = div
 let ( = ) = equal

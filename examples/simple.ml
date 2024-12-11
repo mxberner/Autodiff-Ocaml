@@ -3,9 +3,9 @@ open Variable
 let f_custom a b = ((a * b) - a) * (b + a + a + b) * (a - b)
 let f_float a b = ((a *. b) -. a) *. (b +. a +. a +. b) *. (a -. b)
 let a_f = 230.3
-let a = make (Scalar 230.3)
+let a = make 230.3
 let b_f = 33.2
-let b = make (Scalar 33.2)
+let b = make 33.2
 let y = f_custom a b
 
 let auto_diff_result () =
@@ -16,12 +16,11 @@ let auto_diff_result () =
   (* Get the gradient of d with respect to a *)
   let grad_a = find g_tbl a and grad_b = find g_tbl b in
   match (grad_a, grad_b) with
-  | Scalar dfda, Scalar dfdb ->
+  | dfda, dfdb ->
       (* Print the partial derivative *)
       Printf.printf "The partial derivative of y with respect to a = %f\n" dfda;
       (* Print the partial derivative *)
       Printf.printf "The partial derivative of y with respect to b = %f\n" dfdb
-  | _ -> failwith "Error"
 
 let numerical_estimate_result () =
   print_endline "Numerical Estimation (check the result of auto grad)";
@@ -35,8 +34,7 @@ let numerical_estimate_result () =
 
 let () =
   match y.value with
-  | Scalar v ->
+  | v ->
       Printf.printf "y.value = %f\n" v;
       auto_diff_result ();
       numerical_estimate_result ()
-  | _ -> failwith "Error"
