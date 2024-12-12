@@ -41,3 +41,18 @@ With the base of our library working, the next step is to use it to build some o
 
 To do so, we plan to extend our gradient calculations for Tensors in the `forward_differentiation` and `reverse_differentiation` modules, to calculate things like the Jacobian matrix and the Hessian matrix of a function. This will help with parts of the base of our `optimize` module. We also plan on creating some form of visualization for our automatic differentiation library. We plan on visualizing the DAG that the function is split into, for demonstration purposes. 
 
+# Features
+
+- [x] First order derivative
+- [x] Vectorization
+- [x] N-th order derivative
+- [ ] Example
+    - [x] Basic
+    - [x] Simple Neural Network
+    - [ ] Higher Order Derivatives
+    - [ ] Convolutional Neural Network
+- [ ] More general control flow
+- [ ] Optimizers
+    - [ ] Gradient Descent
+    - [ ] Stochastic Gradient Descent
+    - [ ] Adam

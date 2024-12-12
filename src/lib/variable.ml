@@ -108,6 +108,7 @@ let gradients variable : float VariableHashtbl.t =
 let ( + ) = add
 let ( - ) = sub
 let ( * ) = mul
+let ( / ) = div
 let ( ** ) = pow
 let ( = ) = equal
 
