@@ -1,0 +1,11 @@
+(executable
+ (public_name simple)
+ (name simple)
+ (modules simple)
+ (libraries core variable))
+
+(executable
+ (public_name neural_network)
+ (name neural_network)
+ (modules neural_network)
+ (libraries core tensor))
