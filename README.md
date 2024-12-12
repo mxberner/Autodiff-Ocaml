@@ -56,3 +56,4 @@ To do so, we plan to extend our gradient calculations for Tensors in the `forwar
     - [ ] Gradient Descent
     - [ ] Stochastic Gradient Descent
     - [ ] Adam
+- [ ] Plotting
