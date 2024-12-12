@@ -1,14 +1,16 @@
 (rule
  (target project.zip)
  (deps
-  bin/main.ml
   src/lib/ad.mli
   src/lib/forward_differentiation.mli
-  src/lib/errors.mli
   src/lib/optimize.mli
   src/lib/tensor.mli
   src/lib/variable.mli
   src/lib/dune
-  test/dune)
+  test/dune
+  
+  examples/simple.ml
+  examples/neural_network.ml
+  )
  (action
   (run zip -R project.zip %{deps})))

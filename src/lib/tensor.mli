@@ -1,14 +1,21 @@
-(* 
-tensor.mli
-This module defines operations on tensors, which can be scalars, vectors, or matrices. *)
+(*
+   tensor.mli
+   This module defines operations on tensors, which can be scalars, vectors, or matrices. *)
+open Variable
 
-type t = Scalar of float | Vector of float array | Matrix of float array array
-type s = { rows : int; cols : int }
+type t = Scalar of v | Vector of v array | Matrix of v array array
+(* Define tensor type, which can be a Scalar, Vector, or Matrix *)
+
+exception DimensionMismatch of string
+
+type dimensions = { rows : int; cols : int }
+(* Define type for representing shape of tensors (rows and columns) *)
+
 (** [t] is a type representing a tensor, which can either be a Scalar (a single number),
     a Vector (a 1D array of numbers), or a Matrix (a 2D array of numbers).
     [s] represents the shape of a tensor, number of rows and columns. *)
 
-val shape : t -> s
+val shape : t -> dimensions
 (** [shape tensor] returns the dimensions of the tensor, 
     record with [rows] and [cols] fields. *)
 
@@ -33,11 +40,11 @@ val random : ?seed:int -> int list -> t
     values, where [dims] specifies the dimensions of the tensor. 
     Optionally, [seed] can be provided to control the randomness. *)
 
-val map : (float -> float) -> t -> t
+val map : (v -> v) -> t -> t
 (** [map f tensor] applies the function [f] element-wise to each element of the 
     tensor [tensor], and returns a new tensor with the results. *)
 
-val map2 : (float -> float -> float) -> t -> t -> t
+val map2 : (v -> v -> v) -> t -> t -> t
 (** [map2 f tensor1 tensor2] applies the function [f] element-wise to corresponding 
     elements of [tensor1] and [tensor2], and returns a new tensor with the results.*)
 
@@ -51,7 +58,7 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 (** [mul tensor1 tensor2] performs element-wise multiplication of the two tensors.*)
 
-val div : t -> float -> t
+(* val div : t -> float -> t *)
 (** [div tensor scalar] divides each element of the tensor by the scalar value. 
     Raises an exception if attempting to divide by zero. *)
 
@@ -102,8 +109,10 @@ val flatten : t -> t
 (** [flatten tensor] flattens the tensor into a one-dimensional vector, regardless of its 
     original shape. *)
 
-val sum : t -> float
+val sum : t -> v
 (** [sum tensor] computes the sum of all elements in the tensor, returning a scalar value. *)
+
+val print : t -> unit
 
 (* Operator overloading *)
 val ( + ) : t -> t -> t
@@ -115,7 +124,7 @@ val ( - ) : t -> t -> t
 val ( * ) : t -> t -> t
 (** [tensor1 * tensor2] performs element-wise multiplication of the two tensors. *)
 
-val ( / ) : t -> float -> t
+(* val ( / ) : t -> float -> t *)
 (** [tensor / scalar] divides each element of the tensor by the scalar. *)
 
 val ( = ) : t -> t -> bool
