@@ -1,4 +1,3 @@
-
 type v = { id : int; value : float; local_gradients : (v * float) list }
 
 module VariableHashtbl : sig
@@ -53,10 +52,8 @@ val mul : v -> v -> v
 val div : v -> v -> v
 (* Create the variable that results from multiplying two variables *)
 
-val compare  : v -> v -> int
-
+val compare : v -> v -> int
 val equal : v -> v -> bool
-
 val gradients : v -> float VariableHashtbl.t
 (* Compute the *local gradients* of all the variable *)
 
@@ -66,9 +63,8 @@ val find : float VariableHashtbl.t -> v -> float
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
+val ( / ) : v -> v -> v
 val ( ** ) : v -> float -> v
 val ( = ) : v -> v -> bool
-
-
 val print_table : float VariableHashtbl.t -> unit
 val print : v -> unit

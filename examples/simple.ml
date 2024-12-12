@@ -1,7 +1,7 @@
 open Variable
 
-let f_custom a b = ((a * b) - a) * (b + a + a + b) * (a - b)
-let f_float a b = ((a *. b) -. a) *. (b +. a +. a +. b) *. (a -. b)
+let f_custom a b = ((a * b) / a) * (b + a + a + b) * (a - b)
+let f_float a b = ((a *. b) /. a) *. (b +. a +. a +. b) *. (a -. b)
 let a_f = 230.3
 let a = make 230.3
 let b_f = 33.2
