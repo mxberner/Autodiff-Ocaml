@@ -42,9 +42,9 @@ dune exec <example_name>
 
 ### Examples
     - [x] simple - Run autodifferentiation on a simple function
-    - [x] neural_network - Train a single layer neural network on some random data
-    - [ ] Higher Order Derivatives
-    - [ ] Convolutional Neural Network
+    - [ ] hod - Demonstrates higher order derivatives
+    - [x] nn - Train a single layer neural network on some random data
+    - [ ] cnn - Convolutional Neural Network
 
 
 # Under the hood
