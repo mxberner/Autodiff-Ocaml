@@ -1,3 +1,4 @@
+(* Demonstrates output of auto-differentiation compared to output of numerical estimation *)
 open Variable
 
 let f_custom a b = a * b / a * (b + a + a + b) * (a - b)
