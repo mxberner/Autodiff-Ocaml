@@ -41,10 +41,10 @@ dune exec <example_name>
 ```
 
 ### Examples
-    - [x] simple - Run autodifferentiation on a simple function
-    - [ ] hod - Demonstrates higher order derivatives
-    - [x] nn - Train a single layer neural network on some random data
-    - [ ] cnn - Convolutional Neural Network
+- [x] simple - Run autodifferentiation on a simple function
+- [x] hod - Demonstrates higher order derivatives
+- [x] nn - Train a single layer neural network on some random data
+- [ ] cnn - Convolutional Neural Network
 
 
 # Under the hood
