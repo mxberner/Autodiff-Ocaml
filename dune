@@ -10,7 +10,7 @@
   test/dune
   
   examples/simple.ml
-  examples/neural_network.ml
+  examples/nn.ml
   )
  (action
   (run zip -R project.zip %{deps})))

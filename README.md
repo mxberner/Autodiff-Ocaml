@@ -65,7 +65,7 @@ To do so, we plan to extend our gradient calculations for Tensors in the `forwar
 - [ ] Example
     - [x] Basic
     - [x] Simple Neural Network
-    - [ ] Higher Order Derivatives
+    - [x] Higher Order Derivatives
     - [ ] Convolutional Neural Network
 - [ ] More general control flow
 - [ ] Optimizers

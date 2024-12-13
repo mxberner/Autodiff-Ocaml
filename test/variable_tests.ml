@@ -10,25 +10,26 @@ let f3 x = x * sin x
 
 module Test = struct
   let test_gradient _ =
-    assert_equal 0.0 @@ find (gradients a) a;
+    let dfda = find (gradients a) a in
+    assert_equal 0.0 dfda.value;
     (assert_equal [ 11.0; 4.0 ]
     @@
     let f = f1 a b in
     let g = gradients f in
     let dfda = find g a and dfdb = find g b in
-    [ dfda; dfdb ]);
+    [ dfda.value; dfdb.value ]);
     (assert_equal 0.540302305868139765
     @@
     let x = one () in
     let f = f2 x in
     let dfdx = find (gradients f) x in
-    dfdx);
+    dfdx.value);
     assert_equal (-3.37137697876237574)
     @@
     let x = make 4.0 in
     let f = f3 x in
     let dfdx = find (gradients f) x in
-    dfdx
+    dfdx.value
 
   let series = "Given tests" >::: [ "gradient" >:: test_gradient ]
 end

@@ -1,10 +1,10 @@
-type v = { id : int; value : float; local_gradients : (v * float) list }
+type v = { id : int; value : float; local_gradients : (v * (v -> v)) list }
 
 module VariableHashtbl : sig
   type 'a t
 end
 
-val make : ?local_gradients:(v * float) list -> float -> v
+val make : ?local_gradients:(v * (v -> v)) list -> float -> v
 (* Create the variable from a Tensor *)
 
 val zero : unit -> v
@@ -22,6 +22,27 @@ val neg : v -> v
 val inv : v -> v
 (* Invert the variable *)
 
+val add : v -> v -> v
+(* Create the variable that results from adding two variables *)
+
+val sub : v -> v -> v
+(* Create the variable that results from subtracting two variables *)
+
+val mul : v -> v -> v
+(* Create the variable that results from multiplying two variables *)
+
+val div : v -> v -> v
+(* Create the variable that results from multiplying two variables *)
+
+val pow : v -> float -> v
+(* Power of the variable *)
+
+val compare : v -> v -> int
+(*  *)
+
+val equal : v -> v -> bool
+(*  *)
+
 val sin : v -> v
 (* Sine of the variable *)
 
@@ -35,36 +56,20 @@ val exp : v -> v
 (* exp of the variable *)
 
 val log : v -> v
-(* exp of the variable *)
+(* log of the variable *)
 
-val pow : v -> float -> v
-(* exp of the variable *)
-
-val add : v -> v -> v
-(* Create the variable that results from adding two variables *)
-
-val sub : v -> v -> v
-(* Create the variable that results from subtracting two variables *)
-
-val mul : v -> v -> v
-(* Create the variable that results from multiplying two variables *)
-
-val div : v -> v -> v
-(* Create the variable that results from multiplying two variables *)
-
-val compare : v -> v -> int
-val equal : v -> v -> bool
-val gradients : v -> float VariableHashtbl.t
+val gradients : v -> v VariableHashtbl.t
 (* Compute the *local gradients* of all the variable *)
 
-val find : float VariableHashtbl.t -> v -> float
+val find : v VariableHashtbl.t -> v -> v
 (* Find the local gradient of a variable *)
 
+(* val ( ** ) : v -> float -> v *)
+val print_table : v VariableHashtbl.t -> unit
+val print : v -> unit
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
 val ( / ) : v -> v -> v
 val ( ** ) : v -> float -> v
 val ( = ) : v -> v -> bool
-val print_table : float VariableHashtbl.t -> unit
-val print : v -> unit
