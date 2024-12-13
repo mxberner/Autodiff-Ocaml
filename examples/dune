@@ -5,7 +5,13 @@
  (libraries core variable))
 
 (executable
- (public_name neural_network)
- (name neural_network)
- (modules neural_network)
+ (public_name nn)
+ (name nn)
+ (modules nn)
  (libraries core tensor))
+
+(executable
+ (public_name hod)
+ (name hod)
+ (modules hod)
+ (libraries core variable))
