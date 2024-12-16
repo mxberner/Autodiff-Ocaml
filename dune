@@ -3,7 +3,8 @@
  (deps
   src/lib/ad.mli
   src/lib/forward_differentiation.mli
-  src/lib/optimize.mli
+  src/lib/reverse_differentiation.mli
+  src/lib/optimizer.mli
   src/lib/tensor.mli
   src/lib/variable.mli
   src/lib/dune
@@ -11,6 +12,7 @@
   
   examples/simple.ml
   examples/nn.ml
+  examples/hod.ml
   )
  (action
   (run zip -R project.zip %{deps})))

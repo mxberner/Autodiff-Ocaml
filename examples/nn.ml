@@ -7,6 +7,8 @@ let input_size = 5
 let output_size = 100
 let learning_rate = 0.001
 
+let model = 
+
 let () =
   let x = random ~seed [ 1; input_size ] in
   let y = random ~seed [ 1; output_size ] in

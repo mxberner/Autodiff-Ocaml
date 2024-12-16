@@ -145,7 +145,7 @@ let neg t = map V.neg t
 let flatten t =
   match t with
   | Scalar a -> Vector [| a |]
-  | Vector v -> Vector v
+  | Vector _ -> t
   | Matrix m ->
       Vector (Array.concat (Array.fold ~f:(fun acc x -> x :: acc) ~init:[] m))
 

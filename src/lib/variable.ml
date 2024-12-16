@@ -135,7 +135,7 @@ let tan a =
   make value ~local_gradients
 
 let exp a =
-  let value = F.tan a.value in
+  let value = F.exp a.value in
   let local_gradients = [ (a, fun path_value -> path_value) ] in
   make value ~local_gradients
 

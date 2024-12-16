@@ -3,8 +3,8 @@ open Variable
 
 let f1_custom a b = (a * (a / b)) + (a + b)
 let f1_float a b = (a *. (a /. b)) +. (a +. b)
-let f2_custom x = x * sin x + x * cos x
-let f2_float x = x *. Float.sin x +. x *. Float.cos x
+let f2_custom x = x * sin (x * cos x)
+let f2_float x = x *. Float.sin (x *. Float.cos x)
 let a_f = 230.3
 let a = make 230.3
 let b_f = 33.2
