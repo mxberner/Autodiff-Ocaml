@@ -16,17 +16,8 @@ val one : unit -> v
 val random : unit -> v
 (* Create a variable with random value*)
 
-val neg : v -> v
-(* Negate the variable *)
-
-val inv : v -> v
-(* Invert the variable *)
-
 val add : v -> v -> v
 (* Create the variable that results from adding two variables *)
-
-val sub : v -> v -> v
-(* Create the variable that results from subtracting two variables *)
 
 val mul : v -> v -> v
 (* Create the variable that results from multiplying two variables *)
@@ -34,7 +25,16 @@ val mul : v -> v -> v
 val div : v -> v -> v
 (* Create the variable that results from multiplying two variables *)
 
-val pow : v -> float -> v
+val neg : v -> v
+(* Negate the variable *)
+
+val inv : v -> v
+(* Inverse of the variable *)
+
+val sub : v -> v -> v
+(* Create the variable that results from subtracting two variables *)
+
+val pow : v -> v -> v
 (* Power of the variable *)
 
 val compare : v -> v -> int
@@ -64,12 +64,11 @@ val gradients : v -> v VariableHashtbl.t
 val find : v VariableHashtbl.t -> v -> v
 (* Find the local gradient of a variable *)
 
-(* val ( ** ) : v -> float -> v *)
 val print_table : v VariableHashtbl.t -> unit
 val print : v -> unit
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
 val ( / ) : v -> v -> v
-val ( ** ) : v -> float -> v
+val ( ** ) : v -> v -> v
 val ( = ) : v -> v -> bool

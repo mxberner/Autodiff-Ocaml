@@ -4,7 +4,7 @@ module Test = struct
   module T = Tensor
   module V = Variable
 
-  let get_shape a b : T.dimensions = { rows = a; cols = b }
+  let get_shape a b : T.dims = { rows = a; cols = b }
   let zero = T.Scalar (V.zero ())
   let zeros_vector = T.Vector [| V.zero (); V.zero (); V.zero (); V.zero () |]
 
@@ -252,6 +252,28 @@ module Test = struct
     let sum_vector = T.sum ones_vector in
     assert_bool "" @@ V.equal (V.make 4.0) sum_vector
 
+  let test_15_transpose _ =
+    let m = T.Scalar (V.one ()) and m' = T.Scalar (V.one ()) in
+    assert_bool "" @@ T.equal m' @@ T.transpose m;
+    let m = T.Vector [| V.one (); V.zero () |]
+    and m' = T.Matrix [| [| V.one () |]; [| V.zero () |] |] in
+    assert_bool "" @@ T.equal m' @@ T.transpose m;
+    let m = T.Matrix [| [| V.one (); V.zero () |]; [| V.zero (); V.one () |] |]
+    and m' =
+      T.Matrix [| [| V.one (); V.zero () |]; [| V.zero (); V.one () |] |]
+    in
+    assert_bool "" @@ T.equal m' @@ T.transpose m
+
+  let test_16_flatten _ =
+    let m = T.Scalar (V.one ()) and m' = T.Scalar (V.one ()) in
+    assert_bool "" @@ T.equal m' @@ T.flatten m;
+    let m = T.Vector [| V.one (); V.zero () |]
+    and m' = T.Vector [| V.one (); V.zero () |] in
+    assert_bool "" @@ T.equal m' @@ T.flatten m;
+    let m = T.Matrix [| [| V.one (); V.zero () |]; [| V.zero (); V.one () |] |]
+    and m' = T.Vector [| V.one (); V.zero (); V.zero (); V.one () |] in
+    assert_bool "" @@ T.equal m' @@ T.flatten m
+
   let series =
     "Given tests"
     >::: [
@@ -269,6 +291,8 @@ module Test = struct
            "12 - neg" >:: test_12_neg;
            "13 - flatten" >:: test_13_flatten;
            "14 - sum" >:: test_14_sum;
+           "15 - transpose" >:: test_15_transpose;
+           "16 - flatten" >:: test_16_flatten;
          ]
 end
 

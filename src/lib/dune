@@ -15,4 +15,5 @@
 
 (library
  (name variable)
- (modules variable))
+ (modules variable)
+ (libraries core))

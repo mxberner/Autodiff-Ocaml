@@ -62,7 +62,7 @@ val mul : t -> t -> t
 (** [div tensor scalar] divides each element of the tensor by the scalar value. 
     Raises an exception if attempting to divide by zero. *)
 
-val pow : t -> float -> t
+val pow : t -> t -> t
 (** [pow tensor exponent] raises each element of the tensor to the power of [exponent]. *)
 
 val log : t -> t
