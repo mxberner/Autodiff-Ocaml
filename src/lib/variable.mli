@@ -38,10 +38,10 @@ val pow : v -> v -> v
 (* Power of the variable *)
 
 val compare : v -> v -> int
-(*  *)
+(* Compare two variable float values *)
 
 val equal : v -> v -> bool
-(*  *)
+(* Check if two variable float values are equal*)
 
 val sin : v -> v
 (* Sine of the variable *)

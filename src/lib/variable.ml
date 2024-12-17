@@ -99,9 +99,15 @@ let pow x exponent =
   in
   make value ~local_gradients
 
+let log x =
+  let value = F.log x.value in
+  let local_gradients = [ (x, fun path_value -> mul path_value @@ inv x) ] in
+  make value ~local_gradients
+
 let compare a b = F.compare a.value b.value
 let equal a b = compare a b = 0
 
+(* Higher Order Derivative not supported on sin cos tan exp *)
 let sin x =
   let value = F.sin x.value in
   let local_gradients =
@@ -137,11 +143,6 @@ let exp x =
   let local_gradients =
     [ (x, fun path_value -> mul path_value (const (F.exp x.value))) ]
   in
-  make value ~local_gradients
-
-let log x =
-  let value = F.log x.value in
-  let local_gradients = [ (x, fun path_value -> mul path_value @@ inv x) ] in
   make value ~local_gradients
 
 (* Operator overloading *)
