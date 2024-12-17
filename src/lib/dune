@@ -1,12 +1,12 @@
 (library
  (name ad)
- (modules ad forward_differentiation optimize)
- (modules_without_implementation optimize))
+ (modules ad)
+ (libraries core tensor variable))
 
 (library
- (name reverse_differentiation)
- (modules reverse_differentiation)
- (libraries tensor variable))
+ (name optimizer)
+ (modules optimizer)
+ (libraries core tensor variable))
 
 (library
  (name tensor)
@@ -15,4 +15,5 @@
 
 (library
  (name variable)
- (modules variable))
+ (modules variable)
+ (libraries core))

@@ -13,7 +13,7 @@ let () =
   let w = ref (random ~seed [ input_size; output_size ]) in
   for _ = 1 to 100 do
     let y_pred = matmul x w.contents in
-    let loss = sum (pow (y - y_pred) 2.0) in
+    let loss = sum (pow (y - y_pred) (Scalar (V.make 2.0))) in
     Printf.printf "Loss: %f \n" loss.value;
     let grad = V.gradients loss in
     w :=

@@ -8,14 +8,14 @@ type t = Scalar of v | Vector of v array | Matrix of v array array
 
 exception DimensionMismatch of string
 
-type dimensions = { rows : int; cols : int }
+type dims = { rows : int; cols : int }
 (* Define type for representing shape of tensors (rows and columns) *)
 
 (** [t] is a type representing a tensor, which can either be a Scalar (a single number),
     a Vector (a 1D array of numbers), or a Matrix (a 2D array of numbers).
     [s] represents the shape of a tensor, number of rows and columns. *)
 
-val shape : t -> dimensions
+val shape : t -> dims
 (** [shape tensor] returns the dimensions of the tensor, 
     record with [rows] and [cols] fields. *)
 
@@ -62,7 +62,7 @@ val mul : t -> t -> t
 (** [div tensor scalar] divides each element of the tensor by the scalar value. 
     Raises an exception if attempting to divide by zero. *)
 
-val pow : t -> float -> t
+val pow : t -> t -> t
 (** [pow tensor exponent] raises each element of the tensor to the power of [exponent]. *)
 
 val log : t -> t

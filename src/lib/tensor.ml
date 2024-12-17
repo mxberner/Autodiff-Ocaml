@@ -2,14 +2,14 @@ open Core
 module V = Variable
 
 type t = Scalar of V.v | Vector of V.v array | Matrix of V.v array array
-type dimensions = { rows : int; cols : int }
+type dims = { rows : int; cols : int }
 
 exception DimensionMismatch of string
 
 let zero _ = V.make 0.0
 let one _ = V.make 1.0
 
-let shape (tensor : t) : dimensions =
+let shape (tensor : t) : dims =
   match tensor with
   | Scalar _ -> { rows = 0; cols = 0 }
   | Vector v -> { rows = Array.length v; cols = 1 }
@@ -118,7 +118,11 @@ let matmul t1 t2 =
     | _ -> failwith "matmul is only defined for matrices."
 
 (* Element-wise power *)
-let pow t exponent = map (fun a -> V.pow a exponent) t
+let pow t exponent =
+  match exponent with
+  | Scalar s -> map (fun a -> V.pow a s) t
+  | _ -> failwith "exponent can only be scalar"
+
 let log t = map V.log t
 let exp t = map V.exp t
 let sin t = map V.sin t
@@ -132,11 +136,14 @@ let reshape _ _ =
 (* Transpose *)
 let transpose t =
   match t with
+  | Scalar _ -> t
+  | Vector v ->
+      let rows = Array.length v and cols = 1 in
+      Matrix (Array.init rows ~f:(fun i -> Array.init cols ~f:(fun _ -> v.(i))))
   | Matrix m ->
       let rows = Array.length m and cols = Array.length m.(0) in
       Matrix
         (Array.init cols ~f:(fun i -> Array.init rows ~f:(fun j -> m.(j).(i))))
-  | _ -> failwith "err."
 
 (* Negate *)
 let neg t = map V.neg t
@@ -144,10 +151,8 @@ let neg t = map V.neg t
 (* Flatten *)
 let flatten t =
   match t with
-  | Scalar a -> Vector [| a |]
-  | Vector v -> Vector v
-  | Matrix m ->
-      Vector (Array.concat (Array.fold ~f:(fun acc x -> x :: acc) ~init:[] m))
+  | Scalar _ | Vector _ -> t
+  | Matrix m -> Vector (Array.concat @@ Array.to_list m)
 
 let print t =
   match t with
