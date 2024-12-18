@@ -9,6 +9,7 @@ exception DimensionMismatch of string
 exception OnlyVectorDotProductSupported
 exception OnlyMatrixProductSupported
 exception AxisOutOfBounds
+exception Unsupported
 
 let get = Genarray.get
 let shape = Genarray.dims
@@ -372,15 +373,15 @@ let flatten t =
       iter_ith f t index;
       a
 
-(* Reshape (not supported) *)
-let reshape _ _ =
-  failwith "Reshape is not supported for this tensor representation."
 
 (* Print *)
 let print (t : t) = iter (fun e -> Printf.printf "%f, " e) t
 
-(* Swapaxes *)
-let swapaxes (t : t) (_ : int) (_ : int) : t = t
+(* Reshape (not supported) *)
+let reshape _ _ = raise Unsupported
+
+(* Swapaxes (not supported) *)
+let swapaxes (_ : t) (_ : int) (_ : int) : t = raise Unsupported
 
 (* Operator overloading *)
 let ( + ) = add

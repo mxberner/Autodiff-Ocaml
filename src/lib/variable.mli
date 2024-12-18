@@ -101,3 +101,9 @@ val print : v -> unit
 
 val print_table : t VariableHashtbl.t -> unit
 (* **DEBUG** Print the gradient hash_table *)
+
+(* Machine Learning Function *)
+
+val sigmoid: v -> v
+
+val binary_cross_entropy: v -> v -> v

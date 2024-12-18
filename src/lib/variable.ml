@@ -189,6 +189,7 @@ let transpose (v : v) : v =
   let local_gradients = [ (v, fun path_value -> transpose path_value) ] in
   make data ~local_gradients
 
+(* Machine Learning Functions *)
 let softmax ?(axis = -1) (v : v) : v =
   let exp_a = exp v in
   let s = sum ~axis v in
@@ -216,3 +217,18 @@ let print v =
 let print_table (grad_tbl : t VariableHashtbl.t) =
   Hashtbl.iter_keys grad_tbl ~f:(fun e ->
       Printf.printf "%d %f \n" e.id @@ Tensor.get e.data [||])
+
+
+(* Sigmoid activation function *)
+let sigmoid (x : v) : v =
+  let one = create 1.0 in
+  div one (add one @@ exp (neg x))
+
+(* Binary cross-entropy loss *)
+let binary_cross_entropy (y_true : v) (y_pred : v) : v =
+  let epsilon = create 1e-7 in
+  let loss_pos = neg (y_true * log (y_pred + epsilon)) in
+  let loss_neg =
+    neg ((create 1.0 - y_true) * log (create 1.0 - y_pred + epsilon))
+  in
+  sum loss_pos + sum loss_neg
