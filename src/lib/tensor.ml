@@ -1,188 +1,216 @@
+open Bigarray
 open Core
 module V = Variable
+module F = Float
 
-type t = Scalar of V.v | Vector of V.v array | Matrix of V.v array array
-type dims = { rows : int; cols : int }
+type t = (float, float32_elt, c_layout) Genarray.t
+type dims = int array
 
 exception DimensionMismatch of string
+exception OnlyVectorDotProductSupported
+exception OnlyMatrixProductSupported
 
-let zero _ = V.make 0.0
-let one _ = V.make 1.0
+let get = Genarray.get
+let shape = Genarray.dims
 
-let shape (tensor : t) : dims =
-  match tensor with
-  | Scalar _ -> { rows = 0; cols = 0 }
-  | Vector v -> { rows = Array.length v; cols = 1 }
-  | Matrix m ->
-      let rows = Array.length m in
-      if rows = 0 then { rows = 0; cols = 0 }
-      else { rows; cols = Array.length m.(0) }
+let zeros (dims : int array) : t =
+  let a = Genarray.create float32 c_layout dims in
+  Genarray.fill a 0.0;
+  a
 
-let zeros (dims : int list) : t =
-  match dims with
-  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (zero ())
-  | [ n ] -> Vector (Array.init n ~f:(fun _ -> zero ()))
-  | [ rows; cols ] ->
-      Matrix
-        (Array.init rows ~f:(fun _ -> Array.init cols ~f:(fun _ -> zero ())))
-  | _ -> failwith "Invalid dimensions."
+let ones (dims : int array) : t =
+  let a = Genarray.create float32 c_layout dims in
+  Genarray.fill a 1.0;
+  a
 
-let ones (dims : int list) : t =
-  match dims with
-  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (one ())
-  | [ n ] -> Vector (Array.init n ~f:(fun _ -> one ()))
-  | [ rows; cols ] ->
-      Matrix
-        (Array.init rows ~f:(fun _ -> Array.init cols ~f:(fun _ -> one ())))
-  | _ -> failwith "Invalid dimensions."
-
-let random ?seed (dims : int list) : t =
-  let () = match seed with Some s -> Random.init s | None -> () in
-  match dims with
-  | [] | [ 0 ] | [ 0; 0 ] -> Scalar (V.random ())
-  | [ n ] -> Vector (Array.init n ~f:(fun _ -> V.random ()))
-  | [ rows; cols ] ->
-      Matrix
-        (Array.init rows ~f:(fun _ -> Array.init cols ~f:(fun _ -> V.random ())))
-  | _ -> failwith "Invalid dimensions."
+let random ?seed (dims : int array) : t =
+  (match seed with Some s -> Random.init s | None -> ());
+  let a = Genarray.init float32 c_layout dims (fun _ -> Random.float 1.0) in
+  a
 
 let map f t =
-  match t with
-  | Scalar a -> Scalar (f a)
-  | Vector v -> Vector (Array.map ~f v)
-  | Matrix m -> Matrix (Array.map ~f:(Array.map ~f) m)
+  let map_f i = f (Genarray.get t i) in
+  let dims = shape t in
+  Genarray.init float32 c_layout dims map_f
 
 let map2 f t1 t2 =
-  let { rows = r1; cols = c1 } = shape t1
-  and { rows = r2; cols = c2 } = shape t2 in
-  if not ((r1 = 0 && c1 = 0) || (r2 = 0 && c2 = 0) || (r1 = r2 && c1 = c2)) then
-    raise (DimensionMismatch (Printf.sprintf "(%d, %d)(%d %d)" r1 c1 r2 c2))
+  let d1 = shape t1 and d2 = shape t2 in
+  if Poly.compare d1 d2 <> 0 then
+    raise
+      (DimensionMismatch
+         (Printf.sprintf "(%s) and (%s)"
+            (String.concat_array ~sep:", "
+            @@ Array.map d1 ~f:(fun e -> string_of_int e))
+            (String.concat_array ~sep:", "
+            @@ Array.map d2 ~f:(fun e -> string_of_int e))))
   else
-    match (t1, t2) with
-    | Scalar a, Scalar b -> Scalar (f a b)
-    | a, Scalar b -> map (fun x -> f x b) a
-    | Scalar b, a -> map (fun x -> f x b) a
-    | Vector v1, Vector v2 ->
-        Vector (Array.init (Array.length v1) ~f:(fun i -> f v1.(i) v2.(i)))
-    | Matrix m1, Matrix m2 ->
-        Matrix
-          (Array.init r1 ~f:(fun i ->
-               Array.init c1 ~f:(fun j -> f m1.(i).(j) m2.(i).(j))))
-    | _ -> failwith "Unable to map values"
+    let map_f i = f (Genarray.get t1 i) (Genarray.get t2 i) in
+    Genarray.init float32 c_layout d1 map_f
 
 (* Element-wise addition *)
-let add t1 t2 = map2 V.add t1 t2
+let add t1 t2 = map2 ( +. ) t1 t2
 
 (* Element-wise subtraction *)
-let sub t1 t2 = map2 V.sub t1 t2
+let sub t1 t2 = map2 ( -. ) t1 t2
 
 (* Element-wise multiplication *)
-let mul t1 t2 = map2 V.mul t1 t2
+let mul t1 t2 = map2 ( *. ) t1 t2
 
-(* Sum *)
+(* Common operations *)
+let log t = map F.log t
+let exp t = map F.exp t
+let sin t = map F.sin t
+let cos t = map F.cos t
+let tan t = map F.tan t
+let pow t scalar = map (fun e -> e **. scalar) t
+
+(* Negate *)
+let neg t = map (fun e -> e *. -1.) t
+
+let incr i dims =
+  let l = Array.length i in
+  let rec incr_jth k dims j n =
+    if k.(j) + 1 < dims.(j) then (
+      k.(j) <- k.(j) + 1;
+      true)
+    else (
+      k.(j) <- 0;
+      if j + 1 < n then incr_jth k dims (j + 1) n else false)
+  in
+  incr_jth i dims 0 l
+
+let iter f t =
+  let dims = Genarray.dims t in
+  let n = Array.length dims in
+  let index = Array.init n ~f:(fun _ -> 0) in
+  let rec iter_ith f a i =
+    f (Genarray.get a i);
+    if incr i dims then iter_ith f a i
+  in
+  iter_ith f t index
+
 let sum t =
-  match t with
-  | Scalar a -> a
-  | Vector v -> Array.fold ~f:V.add ~init:(V.zero ()) v
-  | Matrix m ->
-      Array.fold
-        ~f:(fun acc v -> V.add acc @@ Array.fold ~f:V.add ~init:(V.zero ()) v)
-        ~init:(V.zero ()) m
-
-(* Dot product *)
-let dot t1 t2 =
-  let { rows = r1; cols = c1 } = shape t1
-  and { rows = r2; cols = c2 } = shape t2 in
-  if not ((r1 = r2 && c1 = c2) || c1 = r2) then
-    raise (DimensionMismatch (Printf.sprintf "(%d, %d)(%d %d)" r1 c1 r2 c2))
+  let dims = shape t in
+  if Array.length dims = 0 then Genarray.get t [||]
   else
-    match (t1, t2) with
-    | Vector _, Vector _ -> Scalar (sum @@ mul t1 t2)
-    | _ -> failwith "Dot product is only defined for vectors or matrices."
+    let total : float ref = ref 0.0 in
+    iter (fun e -> total := !total +. e) t;
+    !total
+
+let dot t1 t2 =
+  let d1 = shape t1 and d2 = shape t2 in
+  if Array.length d1 <> 1 || Array.length d2 <> 1 then
+    raise OnlyVectorDotProductSupported
+  else if d1.(0) <> d2.(0) then
+    raise (DimensionMismatch (Printf.sprintf "(%d) and (%d)" d1.(0) d2.(0)))
+  else
+    let s = sum @@ mul t1 t2 in
+    let a = Genarray.create float32 c_layout [||] in
+    Genarray.fill a s;
+    a
 
 (* Matrix product *)
 let matmul t1 t2 =
-  let { rows = r1; cols = c1 } = shape t1
-  and { rows = r2; cols = c2 } = shape t2 in
-  if not ((r1 = r2 && c1 = c2) || c1 = r2) then
-    raise (DimensionMismatch (Printf.sprintf "(%d, %d)(%d %d)" r1 c1 r2 c2))
+  let d1 = shape t1 and d2 = shape t2 in
+  if Array.length d1 <> 2 || Array.length d2 <> 2 then
+    raise OnlyMatrixProductSupported
   else
-    match (t1, t2) with
-    | Matrix m1, Matrix m2 ->
-        Matrix
-          (Array.init r1 ~f:(fun i ->
-               Array.init c2 ~f:(fun j ->
-                   sum
-                     (Vector
-                        (Array.init c1 ~f:(fun k -> V.mul m1.(i).(k) m2.(k).(j)))))))
-    | _ -> failwith "matmul is only defined for matrices."
+    let r1 = d1.(0) and c1 = d1.(1) and r2 = d2.(0) and c2 = d2.(1) in
+    if c1 <> r2 then
+      raise
+        (DimensionMismatch (Printf.sprintf "(%d, %d) and (%d, %d)" r1 c1 r2 c2))
+    else
+      (* Create result matrix with dimensions r1 x c2 *)
+      let result = zeros [| r1; c2 |] in
+      for i = 0 to r1 - 1 do
+        for j = 0 to c2 - 1 do
+          let sum = ref 0.0 in
+          for k = 0 to c1 - 1 do
+            sum :=
+              !sum +. (Genarray.get t1 [| i; k |] *. Genarray.get t2 [| k; j |])
+          done;
+          Genarray.set result [| i; j |] !sum
+        done
+      done;
+      result
 
-(* Element-wise power *)
-let pow t exponent =
-  match exponent with
-  | Scalar s -> map (fun a -> V.pow a s) t
-  | _ -> failwith "exponent can only be scalar"
+(* Transpose operation *)
+let transpose t =
+  let dims = shape t in
+  match Array.length dims with
+  | 0 -> t (* Scalar remains unchanged *)
+  | 1 -> t (* 1D vector remains unchanged *)
+  | 2 ->
+      (* For 2D matrix, swap rows and columns *)
+      let rows, cols = (dims.(0), dims.(1)) in
+      let result = zeros [| cols; rows |] in
+      for i = 0 to rows - 1 do
+        for j = 0 to cols - 1 do
+          Genarray.set result [| j; i |] (Genarray.get t [| i; j |])
+        done
+      done;
+      result
+  | n ->
+      (* For higher dimensional tensors, swap first two dimensions *)
+      let new_dims = Array.copy dims in
+      new_dims.(0) <- dims.(1);
+      new_dims.(1) <- dims.(0);
+      let result = zeros new_dims in
 
-let log t = map V.log t
-let exp t = map V.exp t
-let sin t = map V.sin t
-let cos t = map V.cos t
-let tan t = map V.tan t
+      (* Create index mapping function *)
+      let rec transpose_indices current_indices current_depth =
+        if current_depth = n then (
+          let transposed_indices = Array.copy current_indices in
+          transposed_indices.(0) <- current_indices.(1);
+          transposed_indices.(1) <- current_indices.(0);
+          result_indices current_indices transposed_indices)
+        else if current_depth < 2 then
+          for i = 0 to dims.(current_depth) - 1 do
+            current_indices.(current_depth) <- i;
+            transpose_indices current_indices (current_depth + 1)
+          done
+        else
+          for i = 0 to dims.(current_depth) - 1 do
+            current_indices.(current_depth) <- i;
+            transpose_indices current_indices (current_depth + 1)
+          done
+      and result_indices orig_indices transposed_indices =
+        Genarray.set result transposed_indices (Genarray.get t orig_indices)
+      in
+
+      let initial_indices = Array.init n ~f:(fun _ -> 0) in
+      transpose_indices initial_indices 0;
+      result
+
+(* Flatten operation *)
+let flatten t =
+  let dims = Genarray.dims t in
+  let n = Array.length dims in
+  match n with
+  | 0 -> t (* Scalar remains unchanged *)
+  | 1 -> t (* 1D vector remains unchanged *)
+  | _ ->
+      let total = Array.fold ~f:( * ) ~init:1 dims in
+      let a = Genarray.create float32 c_layout [| total |] in
+      let index = Array.init n ~f:(fun _ -> 0) in
+      let c = ref 0 in
+      let f el =
+        Genarray.set a [| !c |] el;
+        c := !c + 1
+      in
+      let rec iter_ith f a i =
+        f (Genarray.get a i);
+        if incr i dims then iter_ith f a i
+      in
+      iter_ith f t index;
+      a
 
 (* Reshape (not supported) *)
 let reshape _ _ =
   failwith "Reshape is not supported for this tensor representation."
 
-(* Transpose *)
-let transpose t =
-  match t with
-  | Scalar _ -> t
-  | Vector v ->
-      let rows = Array.length v and cols = 1 in
-      Matrix (Array.init rows ~f:(fun i -> Array.init cols ~f:(fun _ -> v.(i))))
-  | Matrix m ->
-      let rows = Array.length m and cols = Array.length m.(0) in
-      Matrix
-        (Array.init cols ~f:(fun i -> Array.init rows ~f:(fun j -> m.(j).(i))))
-
-(* Negate *)
-let neg t = map V.neg t
-
-(* Flatten *)
-let flatten t =
-  match t with
-  | Scalar _ | Vector _ -> t
-  | Matrix m -> Vector (Array.concat @@ Array.to_list m)
-
-let print t =
-  match t with
-  | Scalar s -> V.print s
-  | Vector v -> Array.iter ~f:V.print v
-  | Matrix m ->
-      Array.iter
-        ~f:(fun v ->
-          Array.iter ~f:V.print v;
-          print_endline "")
-        m
-
-let float_of_bool b = if b then 1.0 else 0.0
-
-let equal t1 t2 =
-  match (t1, t2) with
-  | Scalar a, Scalar b -> V.equal a b
-  | _ ->
-      let { rows = r1; cols = c1 } = shape t1
-      and { rows = r2; cols = c2 } = shape t2 in
-      if r1 <> r2 || c1 <> c2 then false
-      else
-        let x = max r1 1 * max c1 1 in
-        let y =
-          int_of_float
-            (sum
-               (map2 (fun x y -> V.make @@ float_of_bool (V.equal x y)) t1 t2))
-              .value
-        in
-        x = y
+(* Print *)
+let print t = iter (fun e -> Printf.printf "%f" e) t
 
 (* Operator overloading *)
 let ( + ) = add
