@@ -1,31 +1,33 @@
 open Core
-module F = Float
+open Tensor
 
-type v = { id : int; value : float; local_gradients : (v * (v -> v)) list }
+type v = { id : int; data : t; local_gradients : (v * (v -> v)) list }
 
 module VariableHashtbl = Hashtbl.Make (struct
   type t = v
 
   let hash v = Hashtbl.hash v.id
   let compare v1 v2 = Int.compare v1.id v2.id
-  let t_of_sexp _ = failwith ""
-  let sexp_of_t _ = failwith ""
+  let t_of_sexp _ = failwith "Sexp conversion not supported"
+  let sexp_of_t _ = failwith "Sexp conversion not supported"
 end)
 
 let variable_counter : int ref = ref 0
 
-let make ?(local_gradients = []) value =
+let make ?(local_gradients : (v * (v -> v)) list = []) (data : t) =
   let id = !variable_counter in
-  variable_counter := !variable_counter + 1;
-  { id; value; local_gradients }
+  variable_counter := Int.( + ) !variable_counter 1;
+  { id; data; local_gradients }
 
-let const f = make f ~local_gradients:[]
-let zero () = make ~local_gradients:[] 0.0
-let one () = make ~local_gradients:[] 1.0
-let random () = make @@ Random.float 1.0
+(* Scalar constructors *)
+let const f = make (zeros [||] |> map (fun _ -> f))
+let zero () = const 0.0
+let one () = const 1.0
+let random ?seed dims = make (random ?seed dims)
 
-let add x y =
-  let value = F.add x.value y.value in
+(* Tensor-aware operations *)
+let add (x : v) (y : v) =
+  let data = x.data + y.data in
   let local_gradients =
     [
       (x, fun path_value -> path_value);
@@ -34,10 +36,10 @@ let add x y =
       (* d/dy (x + y) = 1 *)
     ]
   in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let rec mul x y : v =
-  let value = x.value *. y.value in
+let rec mul (x : v) (y : v) =
+  let data = x.data * y.data in
   let local_gradients =
     [
       (x, fun path_value -> mul path_value y);
@@ -46,104 +48,105 @@ let rec mul x y : v =
       (* d/dy (x * y) = x *)
     ]
   in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let rec div x y : v =
-  let value = x.value /. y.value in
+let rec div (x : v) (y : v) =
+  let data = map2 ( /. ) x.data y.data in
   let local_gradients =
     [
       (x, fun path_value -> mul path_value @@ div (one ()) y);
       (* d/dx (x / y) = 1/y *)
       ( y,
         fun path_value ->
-          mul path_value @@ mul (make (-1.0)) @@ div x @@ mul y y );
-      (* d/dy (x / y) = -x/(y*y)  *)
+          mul path_value @@ mul (const (-1.0)) @@ div x @@ mul y y )
+      (* d/dy (x / y) = -x/(y*y) *);
     ]
   in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let rec neg x =
-  let value = -1.0 *. x.value in
+let rec neg (x : v) =
+  let data = map (fun v -> -1.0 *. v) x.data in
   let local_gradients =
     [ (x, fun path_value -> mul path_value @@ div x @@ neg x) ]
-    (* d/dx (-x) = -1 *)
   in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let sub x y = add x @@ neg y
+let sub (x : v) (y : v) = add x @@ neg y
 
-let inv x =
-  let value = 1.0 /. x.value in
+(* Exponential and logarithmic operations *)
+let inv (x : v) =
+  let data = map (fun v -> 1.0 /. v) x.data in
   let local_gradients =
     [
       ( x,
         fun path_value ->
-          mul path_value @@ mul (make (-1.0)) @@ div (one ()) @@ mul x x );
-      (* d/dx (1/x) = -1/x^2 *)
+          mul path_value @@ mul (const (-1.0)) @@ div (one ()) @@ mul x x );
     ]
   in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let pow x exponent =
-  let rec pow_ res e = if e > 1 then pow_ (mul res x) (e - 1) else res in
-  (* TODO: Improve *)
-  let value = x.value **. exponent.value in
-  let local_gradients =
-    [
-      ( x,
-        fun path_value ->
-          mul path_value @@ mul exponent
-          @@ pow_ x (int_of_float exponent.value - 1) );
-      (* d/dx (x**exp) = (exp - 1)*x**exp *)
-    ]
-  in
-  make value ~local_gradients
-
-let log x =
-  let value = F.log x.value in
+let log (x : v) =
+  let data = log x.data in
   let local_gradients = [ (x, fun path_value -> mul path_value @@ inv x) ] in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let compare a b = F.compare a.value b.value
-let equal a b = compare a b = 0
-
-(* Higher Order Derivative not supported on sin cos tan exp *)
-let sin x =
-  let value = F.sin x.value in
+let pow (x : v) (exp : float) =
+  let data = pow x.data exp in
   let local_gradients =
-    [ (x, fun p -> mul p @@ const (F.cos x.value)) (* d/dx sin(x) = cos(x) *) ]
-  in
-  make value ~local_gradients
-
-let cos a =
-  let value = F.cos a.value in
-  let local_gradients =
-    [ (a, fun path_value -> mul path_value @@ const (-.F.sin a.value)) ]
-    (* d/dx cos(x) = -sin(x) *)
-  in
-
-  make value ~local_gradients
-
-let tan a =
-  let value = F.tan a.value in
-  let local_gradients =
-    let s = 1.0 /. F.cos a.value in
     [
-      ( a,
+      ( x,
+        fun path_value ->
+          mul path_value @@ mul (const exp) @@ make (pow x.data (exp -. 1.0)) );
+    ]
+  in
+  make data ~local_gradients
+
+(* Trigonometric operations *)
+let sin (x : v) =
+  let data = sin x.data in
+  let local_gradients =
+    [ (x, fun path_value -> mul path_value @@ make (Tensor.cos x.data)) ]
+  in
+  make data ~local_gradients
+
+let cos (x : v) =
+  let data = cos x.data in
+  let local_gradients =
+    [
+      ( x,
+        fun path_value ->
+          mul path_value @@ mul (const (-1.0)) @@ make (Tensor.sin x.data) );
+    ]
+  in
+  make data ~local_gradients
+
+let tan (x : v) =
+  let data = tan x.data in
+  let local_gradients =
+    [
+      ( x,
         fun path_value ->
           mul path_value
-          @@ make ~local_gradients:path_value.local_gradients
-          @@ (s *. s) );
+          @@ make
+               (map
+                  (fun e ->
+                    let cs = Float.cos e in
+                    1. /. (cs *. cs))
+                  x.data) );
     ]
   in
-  make value ~local_gradients
+  make data ~local_gradients
 
-let exp x =
-  let value = F.exp x.value in
+let exp (x : v) =
+  let data = exp x.data in
   let local_gradients =
-    [ (x, fun path_value -> mul path_value (const (F.exp x.value))) ]
+    [ (x, fun path_value -> mul path_value @@ make (exp x.data)) ]
   in
-  make value ~local_gradients
+  make data ~local_gradients
+
+(* Comparison and equality *)
+let compare a b = Float.compare (get a.data [||]) (get b.data [||])
+let equal a b = compare a b = 0
 
 (* Operator overloading *)
 let ( = ) = equal
@@ -153,6 +156,7 @@ let ( * ) = mul
 let ( / ) = div
 let ( ** ) = pow
 
+(* Gradient computation *)
 let rec compute_gradients gradients variable path_value =
   List.iter
     ~f:(fun (child_variable, f) ->
@@ -170,17 +174,22 @@ let rec compute_gradients gradients variable path_value =
       compute_gradients gradients child_variable gradient_value_of_path)
     variable.local_gradients
 
-let print_table gradients =
-  Hashtbl.iter ~f:(fun x -> Printf.printf "%d %f \n" x.id x.value) gradients
-
-(* Calculate the gradient of each edge *)
+(* Gradient calculation *)
 let gradients variable : v VariableHashtbl.t =
   let grad_tbl = VariableHashtbl.create () in
   compute_gradients grad_tbl variable (one ());
   grad_tbl
 
+(* Find gradient for a specific variable *)
 let find grad_tbl a =
   let f = Hashtbl.find grad_tbl a in
-  match f with Some x -> x | None -> failwith "not found"
+  match f with Some x -> x | None -> failwith "Gradient not found"
 
-let print v = Printf.printf "%f " v.value
+(* Printing *)
+let print v =
+  let dims = shape v.data in
+  if Int.equal (Array.length dims) 0 then Printf.printf "%f " (get v.data [||])
+  else
+    Printf.printf "Tensor of shape %s\n"
+      (String.concat ~sep:"x" @@ Array.to_list
+      @@ Array.map ~f:string_of_int dims)

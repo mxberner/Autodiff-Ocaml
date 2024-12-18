@@ -12,7 +12,7 @@ exception OnlyMatrixProductSupported
 
 (* Define type for representing shape of tensors (rows and columns) *)
 
-val get : t -> int array -> float
+val get : t -> dims -> float
 (** [t] is a type representing a tensor, which can either be a Scalar (a single number),
     a Vector (a 1D array of numbers), or a Matrix (a 2D array of numbers).
     [s] represents the shape of a tensor, number of rows and columns. *)
@@ -20,6 +20,10 @@ val get : t -> int array -> float
 val shape : t -> dims
 (** [shape tensor] returns the dimensions of the tensor, 
     record with [rows] and [cols] fields. *)
+
+val create :  ?dims:dims -> float -> t
+(** [create dims v] creates a tensor (scalar, vector, or matrix) with the specified 
+        dimensions, filled with float [v]. *)
 
 val zeros : dims -> t
 (** [zeros dims] creates a tensor (scalar, vector, or matrix) with the specified 
@@ -122,4 +126,3 @@ val ( * ) : t -> t -> t
 
 (* val ( / ) : t -> float -> t *)
 (** [tensor / scalar] divides each element of the tensor by the scalar. *)
-

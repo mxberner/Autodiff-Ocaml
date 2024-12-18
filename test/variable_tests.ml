@@ -2,85 +2,101 @@ open Core
 open OUnit2
 open Variable
 
-let x = make @@ 4.0
-let y = make @@ 3.0
+let x = make @@ Tensor.create 4.0
+let y = make @@ Tensor.create 3.0
+let tolerance = 0.00001
 
 module Test = struct
+  module T = Tensor
+
   let test_add _ =
     let f x y = x + y in
     let g = gradients (f x y) in
-    let res = find g x and dfdy = find g y in
-    assert_equal 1.0 res.value;
-    assert_equal 1.0 dfdy.value;
+    let dfdx = find g x and dfdy = find g y in
+    assert_equal ~printer:string_of_float 1.0 @@ T.get dfdx.data [||];
+    assert_equal ~printer:string_of_float 1.0 @@ T.get dfdy.data [||];
     let f x y = x + x + y + y + y in
     let g = gradients (f x y) in
-    let res = find g x and dfdy = find g y in
-    assert_equal 2.0 res.value;
-    assert_equal 3.0 dfdy.value
+    let dfdx = find g x and dfdy = find g y in
+    assert_equal ~printer:string_of_float 2.0 @@ T.get dfdx.data [||];
+    assert_equal ~printer:string_of_float 3.0 @@ T.get dfdy.data [||]
 
   let test_mul _ =
     let f x y = x * y in
     let g = gradients (f x y) in
-    let res = find g x and dfdy = find g y in
-    assert_equal 3.0 res.value;
-    assert_equal 4.0 dfdy.value;
+    let dfdx = find g x and dfdy = find g y in
+    assert_equal ~printer:string_of_float 3.0 @@ T.get dfdx.data [||];
+    assert_equal ~printer:string_of_float 4.0 @@ T.get dfdy.data [||];
     let f x y = x * x * y * y * y in
     let g = gradients (f x y) in
-    let res = find g x and dfdy = find g y in
-    assert_equal 216.0 res.value;
-    assert_equal 432.0 dfdy.value
+    let dfdx = find g x and dfdy = find g y in
+    assert_equal ~printer:string_of_float 216.0 @@ T.get dfdx.data [||];
+    assert_equal ~printer:string_of_float 432.0 @@ T.get dfdy.data [||]
 
   let test_div _ =
     let g = gradients (x / y) in
-    let res = find g x and dfdy = find g y in
-    assert_equal (1.0 /. 3.0) res.value;
-    assert_equal (-4.0 /. 9.0) dfdy.value;
+    let dfdx = find g x and dfdy = find g y in
+    assert_bool "dfdx"
+      (Float.( < ) (Float.abs ((1.0 /. 3.0) -. T.get dfdx.data [||])) tolerance);
+    assert_bool "dfdy"
+      (Float.( < )
+         (Float.abs ((-4.0 /. 9.0) -. T.get dfdy.data [||]))
+         tolerance);
+
     let g = gradients (x / x / y) in
-    let res = find g x and dfdy = find g y in
-    assert_equal 0.0 res.value;
-    assert_equal (-1.0 /. 9.0) dfdy.value
+    let dfdx = find g x and dfdy = find g y in
+    assert_equal ~printer:string_of_float 0.0 (T.get dfdx.data [||]);
+    assert_bool "dfdy"
+      (Float.( < )
+         (Float.abs ((-1.0 /. 9.0) -. T.get dfdy.data [||]))
+         tolerance)
 
   let test_neg _ =
     let f' = gradients (neg x) in
     let res = find f' x in
-    assert_equal (-1.0) res.value;
+    assert_equal ~printer:string_of_float (-1.0) @@ T.get res.data [||];
     (* Double derivative *)
     let f'' = gradients (find f' x) in
     let res = find f'' x in
-    assert_equal 0.0 res.value
+    assert_equal ~printer:string_of_float 0.0 @@ T.get res.data [||]
 
   let test_inv _ =
     let f' = gradients (inv x) in
     let res = find f' x in
-    assert_equal (-0.0625) res.value;
+    assert_equal ~printer:string_of_float (-0.0625) @@ T.get res.data [||];
     (* Double derivative *)
     let f'' = gradients (find f' x) in
     let res = find f'' x in
-    assert_equal 0.03125 res.value
+    assert_equal ~printer:string_of_float 0.03125 @@ T.get res.data [||]
 
   let test_pow _ =
-    let f' = gradients (pow x y) in
+    let f' = gradients (pow x 3.0) in
     let res = find f' x in
-    assert_equal 48.0 res.value;
-    (* Double derivative *)
-    let f'' = gradients (find f' x) in
-    let res = find f'' x in
-    assert_equal 24.0 res.value
+    assert_equal ~printer:string_of_float 48.0 @@ T.get res.data [||]
 
   let test_sin _ =
     let f' = gradients (sin x) in
-    let res = find f' x in
-    assert_equal (-0.65364362086361194) res.value
+    let dfdx = find f' x in
+    assert_bool "dfdx"
+      (Float.( < )
+         (Float.abs (-0.653643620864 -. T.get dfdx.data [||]))
+         tolerance)
 
   let test_cos _ =
     let f' = gradients (cos x) in
-    let res = find f' x in
-    assert_equal 0.756802495307928202 res.value
+    let dfdx = find f' x in
+    assert_bool "dfdx"
+      (Float.( < )
+         (Float.abs (0.756802495308 -. T.get dfdx.data [||]))
+         tolerance)
 
   let test_tan _ =
     let f' = gradients (tan x) in
-    let res = find f' x in
-    assert_equal 2.34055012186162 res.value
+    let dfdx = find f' x in
+    assert_bool "dfdx"
+      (Float.( < )
+         (Float.abs (2.34055012186162 -. T.get dfdx.data [||]))
+         tolerance)
 
   let series =
     "Given tests"

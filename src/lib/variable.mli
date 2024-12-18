@@ -1,10 +1,12 @@
-type v = { id : int; value : float; local_gradients : (v * (v -> v)) list }
+open Tensor
+
+type v = { id : int; data : t; local_gradients : (v * (v -> v)) list }
 
 module VariableHashtbl : sig
   type 'a t
 end
 
-val make : ?local_gradients:(v * (v -> v)) list -> float -> v
+val make : ?local_gradients:(v * (v -> v)) list -> t -> v
 (* Create the variable from a Tensor *)
 
 val zero : unit -> v
@@ -13,7 +15,7 @@ val zero : unit -> v
 val one : unit -> v
 (* Create a variable with 0 value*)
 
-val random : unit -> v
+val random : ?seed:int -> dims -> v
 (* Create a variable with random value*)
 
 val add : v -> v -> v
@@ -34,7 +36,7 @@ val inv : v -> v
 val sub : v -> v -> v
 (* Create the variable that results from subtracting two variables *)
 
-val pow : v -> v -> v
+val pow : v -> float -> v
 (* Power of the variable *)
 
 val compare : v -> v -> int
@@ -64,11 +66,12 @@ val gradients : v -> v VariableHashtbl.t
 val find : v VariableHashtbl.t -> v -> v
 (* Find the local gradient of a variable *)
 
-val print_table : v VariableHashtbl.t -> unit
 val print : v -> unit
+
+(* Operator overloading *)
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
 val ( / ) : v -> v -> v
-val ( ** ) : v -> v -> v
+val ( ** ) : v -> float -> v
 val ( = ) : v -> v -> bool

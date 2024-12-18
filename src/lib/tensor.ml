@@ -1,6 +1,5 @@
 open Bigarray
 open Core
-module V = Variable
 module F = Float
 
 type t = (float, float32_elt, c_layout) Genarray.t
@@ -12,6 +11,11 @@ exception OnlyMatrixProductSupported
 
 let get = Genarray.get
 let shape = Genarray.dims
+
+let create ?(dims : int array = [||]) (v : float) =
+  let a = Genarray.create float32 c_layout dims in
+  Genarray.fill a v;
+  a
 
 let zeros (dims : int array) : t =
   let a = Genarray.create float32 c_layout dims in
@@ -216,4 +220,3 @@ let print t = iter (fun e -> Printf.printf "%f" e) t
 let ( + ) = add
 let ( - ) = sub
 let ( * ) = mul
-let ( = ) = equal

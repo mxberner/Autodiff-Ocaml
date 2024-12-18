@@ -8,6 +8,6 @@
 (test
  (name variable_tests)
  (modules variable_tests)
- (libraries core ounit2 variable)
+ (libraries core ounit2 variable tensor)
  (preprocess
   (pps ppx_jane)))
