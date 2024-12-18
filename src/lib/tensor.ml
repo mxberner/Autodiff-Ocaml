@@ -373,15 +373,117 @@ let flatten t =
       iter_ith f t index;
       a
 
-
 (* Print *)
 let print (t : t) = iter (fun e -> Printf.printf "%f, " e) t
 
 (* Reshape (not supported) *)
-let reshape _ _ = raise Unsupported
+let reshape (t : t) (new_dims : dims) : t =
+  let old_dims = shape t in
+  let old_size = Array.fold ~f:( * ) ~init:1 old_dims in
+  let new_size = Array.fold ~f:( * ) ~init:1 new_dims in
+
+  if Int.(old_size <> new_size) then
+    raise
+      (DimensionMismatch
+         (Printf.sprintf "Cannot reshape array of size %d into shape %s"
+            old_size
+            (String.concat_array ~sep:", "
+            @@ Array.map new_dims ~f:string_of_int)))
+  else
+    let result = zeros new_dims in
+
+    let rec convert_index idx dims =
+      let n = Array.length dims in
+      Array.init n ~f:(fun i ->
+          let stride =
+            Array.fold ~f:( * ) ~init:1
+              (Array.sub dims ~pos:(i + 1) ~len:(n - i - 1))
+          in
+          idx / stride mod dims.(i))
+    in
+
+    let flat_idx = ref 0 in
+    let rec fill_tensor () =
+      if !flat_idx >= old_size then ()
+      else
+        let old_coords = convert_index !flat_idx old_dims in
+        let new_coords = convert_index !flat_idx new_dims in
+        Genarray.set result new_coords (Genarray.get t old_coords);
+        flat_idx := !flat_idx + 1;
+        fill_tensor ()
+    in
+
+    fill_tensor ();
+    result
 
 (* Swapaxes (not supported) *)
-let swapaxes (_ : t) (_ : int) (_ : int) : t = raise Unsupported
+let swapaxes (t : t) (axis1 : int) (axis2 : int) : t =
+  let dims = shape t in
+  let n = Array.length dims in
+
+  (* Validate axes *)
+  if axis1 < 0 || axis1 >= n || axis2 < 0 || axis2 >= n then
+    raise AxisOutOfBounds;
+
+  (* If axes are the same, return original tensor *)
+  if axis1 = axis2 then t
+  else
+    (* Create new dimensions with swapped axes *)
+    let new_dims = Array.copy dims in
+    new_dims.(axis1) <- dims.(axis2);
+    new_dims.(axis2) <- dims.(axis1);
+
+    let result = zeros new_dims in
+    let index = Array.create ~len:n 0 in
+
+    let rec fill_tensor () =
+      (* Copy current value *)
+      let swapped_index = Array.copy index in
+      swapped_index.(axis1) <- index.(axis2);
+      swapped_index.(axis2) <- index.(axis1);
+
+      Genarray.set result swapped_index (Genarray.get t index);
+
+      (* Move to next position *)
+      if incr index dims then fill_tensor ()
+    in
+
+    fill_tensor ();
+    result
+
+let where (condition : t) (x : t) (y : t) : t =
+  let cond_dims = shape condition in
+
+  (* Broadcast the inputs if necessary *)
+  let a, b = broadcast x y in
+  let broadcast_dims = shape a in
+
+  (* Verify condition dimensions match broadcasted dimensions *)
+  if Poly.compare cond_dims broadcast_dims <> 0 then
+    raise
+      (DimensionMismatch
+         (Printf.sprintf "Condition shape %s doesn't match input shapes %s"
+            (String.concat_array ~sep:", "
+            @@ Array.map cond_dims ~f:string_of_int)
+            (String.concat_array ~sep:", "
+            @@ Array.map broadcast_dims ~f:string_of_int)));
+
+  let result = zeros broadcast_dims in
+  let index = Array.create ~len:(Array.length broadcast_dims) 0 in
+
+  let rec fill_tensor () =
+    let cond_val = Genarray.get condition index in
+    let value =
+      if Float.(Float.abs cond_val > 0.0) then Genarray.get a index
+      else Genarray.get b index
+    in
+    Genarray.set result index value;
+
+    if incr index broadcast_dims then fill_tensor ()
+  in
+
+  fill_tensor ();
+  result
 
 (* Operator overloading *)
 let ( + ) = add

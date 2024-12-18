@@ -115,6 +115,8 @@ val neg : t -> t
 val swapaxes : t -> int -> int -> t
 (** [swapaxes t axis1 axis2] Interchange two axes of an array.  *)
 
+val where : t -> t-> t
+
 val print : t -> unit
 
 (* Operator overloading *)
