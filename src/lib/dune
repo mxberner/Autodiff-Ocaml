@@ -1,9 +1,4 @@
 (library
- (name ad)
- (modules ad)
- (libraries core tensor variable))
-
-(library
  (name optimizer)
  (modules optimizer)
  (libraries core tensor variable))

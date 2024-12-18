@@ -1,9 +1,6 @@
 (rule
  (target project.zip)
  (deps
-  src/lib/ad.mli
-  src/lib/forward_differentiation.mli
-  src/lib/reverse_differentiation.mli
   src/lib/optimizer.mli
   src/lib/tensor.mli
   src/lib/variable.mli

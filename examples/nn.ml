@@ -2,20 +2,6 @@ open Core
 open Tensor
 open Variable
 
-(* Sigmoid activation function *)
-let sigmoid (x : v) : v =
-  let one = create 1.0 in
-  one / (one + exp (neg x))
-
-(* Binary cross-entropy loss *)
-let binary_cross_entropy (y_true : v) (y_pred : v) : v =
-  let epsilon = create 1e-7 in
-  let loss_pos = neg (y_true * log (y_pred + epsilon)) in
-  let loss_neg =
-    neg ((create 1.0 - y_true) * log (create 1.0 - y_pred + epsilon))
-  in
-  sum loss_pos + sum loss_neg
-
 (* Generate synthetic dataset *)
 let generate_data (num_samples : int) : v * v * v * v =
   let x1 = random [| num_samples; 2 |] in
