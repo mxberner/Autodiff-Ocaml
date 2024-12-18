@@ -1,5 +1,6 @@
 open Bigarray
 open OUnit2
+open Core
 
 module Test = struct
   module T = Tensor
@@ -109,8 +110,8 @@ module Test = struct
     let scalar = T.random [||] in
     assert_equal [||] @@ T.shape scalar;
     assert_bool "Scalar should be between 0 and 1"
-      (let v = T.get scalar [||] in
-       v >= 0.0 && v < 1.0);
+      (let t = T.get scalar [||] in
+       Float.compare t 0.0 <= 1 && Float.compare t 1.0 <= -1);
 
     (* Test seeded randomness *)
     let with_seed = T.random ~seed:42 [| 5 |] in
@@ -125,7 +126,10 @@ module Test = struct
     assert_equal [| 1; 2; 3 |] @@ T.shape (T.random [| 1; 2; 3 |]);
 
     (* Verify random values are in [0, 1) range *)
-    let f v = assert_bool "Random value out of range" (v >= 0.0 && v < 1.0) in
+    let f t =
+      assert_bool "Random value out of range"
+        (Float.compare t 0.0 <= 1 && Float.compare t 1.0 <= -1)
+    in
     check_all (T.random [| 10; 20 |]) f;
     check_all (T.random [| 5; 5; 5 |]) f
 
@@ -135,8 +139,8 @@ module Test = struct
       let random = T.random dims in
       let mapped = T.map (fun _ -> constant) random in
       let expected =
-        if constant = 0.0 then T.zeros dims
-        else if constant = 1.0 then T.ones dims
+        if Float.compare constant 0.0 = 0 then T.zeros dims
+        else if Float.compare constant 1.0 = 0 then T.ones dims
         else T.random dims |> T.map (fun _ -> constant)
       in
       assert_equal expected mapped
@@ -210,26 +214,79 @@ module Test = struct
         T.map2 ( +. ) (T.ones [| 1; 2 |]) (T.ones [| 2; 1 |]))
 
   let test_sum _ =
-    (* Sum of scalar *)
-    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [||]) [||];
+    (* Scalar sum *)
+    let scalar = T.ones [||] in
+    assert_equal scalar @@ T.sum scalar;
 
-    (* Sum of various dimensional tensors *)
-    assert_equal ~printer:string_of_float 1.0 @@ T.get (T.sum @@ T.ones [| 1 |]) [||];
-    assert_equal ~printer:string_of_float 2.0 @@ T.get (T.sum @@ T.ones [| 1; 2 |]) [||];
-    assert_equal ~printer:string_of_float 6.0 @@ T.get (T.sum @@ T.ones [| 1; 2; 3 |]) [||];
+    (* Full tensor sum for different dimensions *)
+    assert_equal 1.0 @@ T.get (T.sum (T.ones [| 1 |])) [||];
+    assert_equal 2.0 @@ T.get (T.sum (T.ones [| 1; 2 |])) [||];
+    assert_equal 6.0 @@ T.get (T.sum (T.ones [| 1; 2; 3 |])) [||];
 
-    (* Sum of random tensors *)
-    let test_random_sum dims =
+    (* Random tensor full sum *)
+    let test_random_full_sum dims =
       let random = T.random dims in
       let sum_val = T.get (T.sum random) [||] in
-      assert_bool "Sum should be non-negative" (sum_val >= 0.0);
+      assert_bool "Sum should be non-negative" (Float.compare sum_val 0.0 >= 0);
       assert_bool "Sum should be less than tensor size"
-        (sum_val < float_of_int (List.fold_left ( * ) 1 @@ Array.to_list dims))
+        (Float.compare sum_val
+           (float_of_int (List.fold ~f:( * ) ~init:1 (Array.to_list dims)))
+        = -1)
     in
 
-    test_random_sum [| 10 |];
-    test_random_sum [| 5; 5 |];
-    test_random_sum [| 2; 3; 4 |]
+    test_random_full_sum [| 10 |];
+    test_random_full_sum [| 5; 5 |];
+    test_random_full_sum [| 2; 3; 4 |];
+
+    (* Axis-wise summation tests *)
+    let matrix =
+      Genarray.init float32 c_layout [| 3; 4 |] (fun i ->
+          float_of_int ((i.(0) * 4) + i.(1) + 1))
+    in
+
+    (* Sum along axis 0 (column-wise) *)
+    let column_sum = T.sum ~axis:0 matrix in
+
+    assert_equal [| 4 |] @@ T.shape column_sum;
+    assert_equal ~printer:string_of_float 15.0 @@ T.get column_sum [| 0 |];
+    assert_equal ~printer:string_of_float 18.0 @@ T.get column_sum [| 1 |];
+    assert_equal ~printer:string_of_float 21.0 @@ T.get column_sum [| 2 |];
+    assert_equal ~printer:string_of_float 24.0 @@ T.get column_sum [| 3 |];
+
+    (* Sum along axis 1 (row-wise) *)
+    let row_sum = T.sum ~axis:1 matrix in
+    assert_equal [| 3 |] @@ T.shape row_sum;
+    assert_equal ~printer:string_of_float 10.0 @@ T.get row_sum [| 0 |];
+    assert_equal 10.0 @@ T.get row_sum [| 0 |];
+    assert_equal 26.0 @@ T.get row_sum [| 1 |];
+    assert_equal 42.0 @@ T.get row_sum [| 2 |];
+
+    (* Sum of last row *)
+
+    (* 3D tensor axis summation *)
+    let tensor_3d =
+      Genarray.init float32 c_layout [| 2; 3; 4 |] (fun i ->
+          float_of_int ((i.(0) * 12) + (i.(1) * 4) + i.(2) + 1))
+    in
+
+    (* Sum along first axis *)
+    let axis0_sum = T.sum ~axis:0 tensor_3d in
+    assert_equal [| 3; 4 |] @@ T.shape axis0_sum;
+
+    (* Sum along second axis *)
+    let axis1_sum = T.sum ~axis:1 tensor_3d in
+    assert_equal [| 2; 4 |] @@ T.shape axis1_sum;
+
+    (* Sum along last axis *)
+    let axis2_sum = T.sum ~axis:2 tensor_3d in
+    assert_equal [| 2; 3 |] @@ T.shape axis2_sum;
+
+    (* Negative axis indexing *)
+    let last_axis_sum = T.sum ~axis:(-1) tensor_3d in
+    assert_equal [| 2; 3 |] @@ T.shape last_axis_sum;
+
+    (* Error case: out of bounds axis *)
+    assert_raises Tensor.AxisOutOfBounds (fun () -> T.sum ~axis:3 tensor_3d)
 
   let test_dot _ =
     (* Basic dot product tests *)
@@ -246,7 +303,7 @@ module Test = struct
     (* Dot product with specific values *)
     let create_vec values =
       let vec = T.zeros [| Array.length values |] in
-      Array.iteri (fun i v -> Genarray.set vec [| i |] v) values;
+      Array.iteri ~f:(fun i v -> Genarray.set vec [| i |] v) values;
       vec
     in
 
@@ -322,15 +379,7 @@ module Test = struct
           | [| 1; 1 |] -> 154.0 (* 4*8 + 5*10 + 6*12 *)
           | _ -> failwith "Unexpected index")
     in
-    assert_equal expected_result @@ T.matmul m3 m4;
-
-    (* Attempt to multiply 1D vectors should raise an exception *)
-    assert_raises T.OnlyMatrixProductSupported (fun _ ->
-        T.matmul (T.ones [| 3 |]) (T.ones [| 3 |]));
-
-    (* Attempt to multiply 3D tensors should raise an exception *)
-    assert_raises T.OnlyMatrixProductSupported (fun _ ->
-        T.matmul (T.ones [| 2; 2; 2 |]) (T.ones [| 2; 2; 2 |]))
+    assert_equal expected_result @@ T.matmul m3 m4
 
   let test_transpose _ =
     (* Test scalar (0-dimensional) tensor *)

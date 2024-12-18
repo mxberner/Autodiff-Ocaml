@@ -23,7 +23,7 @@ let make ?(local_gradients : (v * (t -> t)) list = []) (data : t) =
 let const f = make (zeros [||] |> map (fun _ -> f))
 let zero () = const 0.0
 let one () = const 1.0
-let create ?dims (v : float) = make (create ?dims v)
+let create ?dims (value : float) = make (create ?dims value)
 let random ?(seed : int option) (dims : dims) = make (random ?seed dims)
 let get (v : v) (dims : dims) : float = get v.data dims
 
@@ -156,8 +156,8 @@ let find grad_tbl a =
   let f = Hashtbl.find grad_tbl a in
   match f with Some x -> x | None -> failwith "Gradient not found"
 
-let sum (x : v) =
-  let data = sum x.data in
+let sum ?(axis = -1) (x : v) =
+  let data = sum ~axis x.data in
   let local_gradients = [ (x, fun path_value -> path_value + data) ] in
   make data ~local_gradients
 
@@ -178,10 +178,22 @@ let matmul (x : v) (y : v) =
   let data = matmul a.data b.data in
   let local_gradients =
     [
-      (x, fun path_value -> path_value * swapaxes b.data (-2) (-1));
-      (y, fun path_value -> swapaxes b.data (-2) (-1) * path_value);
+      (x, fun path_value -> path_value * transpose b.data);
+      (y, fun path_value -> transpose a.data * path_value);
     ]
   in
+  make data ~local_gradients
+
+let transpose (v : v) : v =
+  let data = transpose v.data in
+  let local_gradients = [ (v, fun path_value -> transpose path_value) ] in
+  make data ~local_gradients
+
+let softmax ?(axis = -1) (v : v) : v =
+  let exp_a = exp v in
+  let s = sum ~axis v in
+  let data = Tensor.exp v.data in
+  let local_gradients = [ (v, fun _ -> exp_a.data / s.data) ] in
   make data ~local_gradients
 
 (* Operator overloading *)
