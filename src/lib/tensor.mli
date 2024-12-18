@@ -9,6 +9,7 @@ type dims = int array
 exception DimensionMismatch of string
 exception OnlyVectorDotProductSupported
 exception OnlyMatrixProductSupported
+exception AxisOutOfBounds
 
 (* Define type for representing shape of tensors (rows and columns) *)
 
@@ -22,8 +23,8 @@ val shape : t -> dims
     record with [rows] and [cols] fields. *)
 
 val create : ?dims:dims -> float -> t
-(** [create dims v] creates a tensor (scalar, vector, or matrix) with the specified 
-        dimensions, filled with float [v]. *)
+(** [create dims value] creates a tensor (scalar, vector, or matrix) with the specified 
+        dimensions, filled with float [value]. *)
 
 val zeros : dims -> t
 (** [zeros dims] creates a tensor (scalar, vector, or matrix) with the specified 
@@ -86,7 +87,7 @@ val cos : t -> t
 val tan : t -> t
 (** [tan t] applies the tangent function element-wise to each element of the tensor. *)
 
-val sum : t -> t
+val sum : ?axis:int -> t -> t
 (** [sum t] computes the sum of all elements in the tensor, returning a scalar value. *)
 
 val dot : t -> t -> t
@@ -128,5 +129,3 @@ val ( * ) : t -> t -> t
 
 val ( / ) : t -> t -> t
 (** [t1 / t2] performs element-wise multiplication of the two tensors.*)
-
-

@@ -9,6 +9,10 @@ end
 val make : ?local_gradients:(v * (t -> t)) list -> t -> v
 (* Create the variable from a Tensor *)
 
+val create : ?dims:dims -> float -> v
+(** [create dims value] creates a variable tensor (scalar, vector, or matrix) with the specified 
+        dimensions, filled with float [value]. *)
+
 val zero : unit -> v
 (* Create a variable with 0 value*)
 
@@ -67,7 +71,7 @@ val find : t VariableHashtbl.t -> v -> t
 
 val get : v -> dims -> float
 
-val sum : v -> v
+val sum : ?axis:int -> v -> v
 (** [sum v] computes the sum of all elements in the tensor, returning a scalar value. *)
 
 (* Machine Learning Operations *)
@@ -76,6 +80,12 @@ val matmul : v -> v -> v
 (** [matmul v1 v2] performs matrix multiplication on two matrices.
         The number of columns in the first matrix must match the number of rows in the
         second matrix. *)
+
+val transpose : v -> v
+(** [transpose v] transposes the matrix. This operation is only applicable for matrices,
+                    swapping rows and columns. *)
+
+val softmax : ?axis:int -> v -> v
 
 (* Operator overloading *)
 val ( + ) : v -> v -> v

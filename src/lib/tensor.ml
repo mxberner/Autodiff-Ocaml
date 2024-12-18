@@ -8,13 +8,14 @@ type dims = int array
 exception DimensionMismatch of string
 exception OnlyVectorDotProductSupported
 exception OnlyMatrixProductSupported
+exception AxisOutOfBounds
 
 let get = Genarray.get
 let shape = Genarray.dims
 
-let create ?(dims : int array = [||]) (v : float) =
+let create ?(dims : int array = [||]) (value : float) =
   let a = Genarray.create float32 c_layout dims in
-  Genarray.fill a v;
+  Genarray.fill a value;
   a
 
 let zeros (dims : int array) : t =
@@ -32,13 +33,30 @@ let random ?seed (dims : int array) : t =
   let a = Genarray.init float32 c_layout dims (fun _ -> Random.float 1.0) in
   a
 
+let broadcast (x : t) (y : t) : t * t =
+  let d1 = shape x and d2 = shape y in
+  let m = Array.length d1 and n = Array.length d2 in
+  let a, b =
+    match (m, n) with
+    | 1, 1 -> (x, y)
+    | 0, _ ->
+        let v = get x [||] in
+        (create ~dims:d2 v, y)
+    | _, 0 ->
+        let v = get y [||] in
+        (x, create ~dims:d1 v)
+    | _, _ -> (x, y)
+  in
+  (a, b)
+
 let map (f : float -> float) (t : t) =
   let map_f i = f (Genarray.get t i) in
   let dims = shape t in
   Genarray.init float32 c_layout dims map_f
 
 let map2 f t1 t2 =
-  let d1 = shape t1 and d2 = shape t2 in
+  let a, b = broadcast t1 t2 in
+  let d1 = shape a and d2 = shape b in
   if Poly.compare d1 d2 <> 0 then
     raise
       (DimensionMismatch
@@ -48,7 +66,7 @@ let map2 f t1 t2 =
             (String.concat_array ~sep:", "
             @@ Array.map d2 ~f:(fun e -> string_of_int e))))
   else
-    let map_f i = f (Genarray.get t1 i) (Genarray.get t2 i) in
+    let map_f i = f (Genarray.get a i) (Genarray.get b i) in
     Genarray.init float32 c_layout d1 map_f
 
 (* Element-wise addition *)
@@ -96,13 +114,52 @@ let iter f t =
   in
   iter_ith f t index
 
-let sum (t : t) : t =
+let full_sum (t : t) : t =
   let dims = shape t in
   if Array.length dims = 0 then t
   else
     let total : float ref = ref 0.0 in
     iter (fun e -> total := !total +. e) t;
     create !total
+
+let axis_sum (t : t) (ax : int) : t =
+  let dims = shape t in
+  let n = Array.length dims in
+
+  let axis = if ax < 0 then n + ax else ax in
+
+  (* Validate axis *)
+  if axis < 0 || axis >= n then raise AxisOutOfBounds;
+
+  (* Calculate result dimensions *)
+  let result_dims = Array.filteri ~f:(fun i _ -> i <> axis) dims in
+
+  (* Create result tensor *)
+  let result = zeros result_dims in
+
+  (* Summation logic *)
+  let index = Array.init n ~f:(fun _ -> 0) in
+
+  let rec sum_recursive () =
+    (* Extract indices for result tensor *)
+    let result_index = Array.filteri ~f:(fun i _ -> i <> axis) index in
+    (* Get current value *)
+    let current_val = Genarray.get t index in
+    (* Add to result *)
+    let current_result_val =
+      try Genarray.get result result_index with _ -> 0.0
+    in
+    Genarray.set result result_index (current_result_val +. current_val);
+
+    if incr index dims then sum_recursive ()
+  in
+
+  sum_recursive ();
+  result
+
+(* Sum function with axis reduction support *)
+let sum ?axis (t : t) : t =
+  match axis with None -> full_sum t | Some ax -> axis_sum t ax
 
 let dot t1 t2 =
   let d1 = shape t1 and d2 = shape t2 in
@@ -115,15 +172,54 @@ let dot t1 t2 =
 (* Matrix product *)
 let matmul t1 t2 =
   let d1 = shape t1 and d2 = shape t2 in
-  if Array.length d1 <> 2 || Array.length d2 <> 2 then
-    raise OnlyMatrixProductSupported
-  else
+
+  (* Handle scalar cases *)
+  if Array.length d1 = 0 then t2
+  else if Array.length d2 = 0 then t1 (* 1D x 1D = scalar dot product *)
+  else if Array.length d1 = 1 && Array.length d2 = 1 then (
+    let result = ref 0.0 in
+    for i = 0 to d1.(0) - 1 do
+      result := !result +. (Genarray.get t1 [| i |] *. Genarray.get t2 [| i |])
+    done;
+    create ~dims:[||] !result (* 1D x 2D = matrix-vector multiplication *))
+  else if Array.length d1 = 1 && Array.length d2 = 2 then (
+    let rows = d2.(0) and cols = d2.(1) in
+    if d1.(0) <> cols then
+      raise
+        (DimensionMismatch
+           (Printf.sprintf "Vector (%d) and Matrix (%d, %d)" d1.(0) rows cols))
+    else
+      let result = zeros [| rows |] in
+      for i = 0 to rows - 1 do
+        let sum = ref 0.0 in
+        for j = 0 to cols - 1 do
+          sum := !sum +. (Genarray.get t1 [| j |] *. Genarray.get t2 [| i; j |])
+        done;
+        Genarray.set result [| i |] !sum
+      done;
+      result (* 2D x 1D = matrix-vector multiplication *))
+  else if Array.length d1 = 2 && Array.length d2 = 1 then (
+    let rows = d1.(0) and cols = d1.(1) in
+    if d2.(0) <> cols then
+      raise
+        (DimensionMismatch
+           (Printf.sprintf "Matrix (%d, %d) and Vector (%d)" rows cols d2.(0)))
+    else
+      let result = zeros [| rows |] in
+      for i = 0 to rows - 1 do
+        let sum = ref 0.0 in
+        for j = 0 to cols - 1 do
+          sum := !sum +. (Genarray.get t1 [| i; j |] *. Genarray.get t2 [| j |])
+        done;
+        Genarray.set result [| i |] !sum
+      done;
+      result (* 2D x 2D = matrix multiplication *))
+  else if Array.length d1 = 2 && Array.length d2 = 2 then (
     let r1 = d1.(0) and c1 = d1.(1) and r2 = d2.(0) and c2 = d2.(1) in
     if c1 <> r2 then
       raise
         (DimensionMismatch (Printf.sprintf "(%d, %d) and (%d, %d)" r1 c1 r2 c2))
     else
-      (* Create result matrix with dimensions r1 x c2 *)
       let result = zeros [| r1; c2 |] in
       for i = 0 to r1 - 1 do
         for j = 0 to c2 - 1 do
@@ -135,6 +231,74 @@ let matmul t1 t2 =
           Genarray.set result [| i; j |] !sum
         done
       done;
+      result (* Higher dimensional tensors *))
+  else
+    let n1 = Array.length d1 in
+    let n2 = Array.length d2 in
+
+    (* Check if last dimension of t1 matches second-to-last of t2 *)
+    if d1.(n1 - 1) <> d2.(n2 - 2) then
+      raise
+        (DimensionMismatch
+           (Printf.sprintf " %s and %s"
+              (String.concat ~sep:"x" @@ Array.to_list
+              @@ Array.map ~f:string_of_int d1)
+              (String.concat ~sep:"x" @@ Array.to_list
+              @@ Array.map ~f:string_of_int d2)))
+    else
+      (* Compute result dimensions *)
+      let result_dims =
+        Array.init
+          (n1 + n2 - 2)
+          ~f:(fun i ->
+            if i < n1 - 2 then d1.(i)
+            else if i = n1 - 2 then d1.(n1 - 2)
+            else d2.(n2 - 1))
+      in
+
+      let result = zeros result_dims in
+
+      (* Recursive computation for higher dimensions *)
+      let index1 = Array.init n1 ~f:(fun _ -> 0) in
+      let index2 = Array.init n2 ~f:(fun _ -> 0) in
+      let result_index =
+        Array.init (Array.length result_dims) ~f:(fun _ -> 0)
+      in
+
+      let rec compute_matmul () =
+        let sum = ref 0.0 in
+
+        (* Inner product computation *)
+        for k = 0 to d1.(n1 - 1) - 1 do
+          (* Update indices for inner multiplication *)
+          index1.(n1 - 1) <- k;
+          index2.(n2 - 2) <- k;
+
+          sum := !sum +. (Genarray.get t1 index1 *. Genarray.get t2 index2)
+        done;
+
+        (* Set result *)
+        Genarray.set result result_index !sum;
+
+        (* Increment indices *)
+        let rec increment_indices dim =
+          if dim < 0 then false
+          else if dim >= Array.length result_dims then
+            increment_indices (dim - 1)
+          else (
+            result_index.(dim) <- result_index.(dim) + 1;
+
+            if result_index.(dim) >= result_dims.(dim) then (
+              result_index.(dim) <- 0;
+              increment_indices (dim - 1))
+            else true)
+        in
+
+        if increment_indices (Array.length result_dims - 1) then
+          compute_matmul ()
+      in
+
+      compute_matmul ();
       result
 
 (* Transpose operation *)
@@ -213,7 +377,7 @@ let reshape _ _ =
   failwith "Reshape is not supported for this tensor representation."
 
 (* Print *)
-let print (t : t) = iter (fun e -> Printf.printf "%f" e) t
+let print (t : t) = iter (fun e -> Printf.printf "%f, " e) t
 
 (* Swapaxes *)
 let swapaxes (t : t) (_ : int) (_ : int) : t = t
