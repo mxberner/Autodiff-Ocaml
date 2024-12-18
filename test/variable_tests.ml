@@ -106,7 +106,10 @@ module Test = struct
   let test_exp _ =
     let f' = gradients (exp x) in
     let dfdx = find f' x in
-    assert_equal 54.598150033144236 @@ T.get dfdx.data [||]
+    assert_bool "dfdx"
+      (Float.( < )
+         (Float.abs (54.598150033144236 -. T.get dfdx.data [||]))
+         tolerance)
 
   let series =
     "Given tests"
