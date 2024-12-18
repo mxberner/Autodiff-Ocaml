@@ -6,11 +6,11 @@ let f1_float a b = (a *. (a /. b)) +. (a +. b)
 let f2_custom x = x * sin (x * cos x)
 let f2_float x = x *. Float.sin (x *. Float.cos x)
 let a_f = 230.3
-let a = make 230.3
+let a = make @@ Tensor.create 230.3
 let b_f = 33.2
-let b = make 33.2
+let b = make @@ Tensor.create 33.2
 let x_f = 2.0
-let x = make 2.0
+let x = make @@ Tensor.create 2.0
 
 let auto_diff_result_f1 f =
   print_endline "Autodiff Gradient Result";
@@ -23,10 +23,10 @@ let auto_diff_result_f1 f =
   | dfda, dfdb ->
       (* Print the partial derivative *)
       Printf.printf "The partial derivative of y with respect to a = %f\n"
-        dfda.value;
+      @@ Tensor.get dfda.data [||];
       (* Print the partial derivative *)
       Printf.printf "The partial derivative of y with respect to b = %f\n"
-        dfdb.value
+      @@ Tensor.get dfdb.data [||]
 
 let auto_diff_result_f2 f =
   print_endline "Autodiff Gradient Result";
@@ -35,7 +35,7 @@ let auto_diff_result_f2 f =
   (* Get the gradient of d with respect to a *)
   let grad = find g_tbl x in
   Printf.printf "The partial derivative of y with respect to x = %f\n"
-    grad.value
+  @@ Tensor.get grad.data [||]
 
 let numerical_estimate_result_f1 () =
   print_endline "Numerical Estimation (check the result of auto grad)";
