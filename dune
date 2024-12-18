@@ -8,7 +8,6 @@
   
   examples/simple.ml
   examples/nn.ml
-  examples/hod.ml
   )
  (action
   (run zip -R project.zip %{deps})))

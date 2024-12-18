@@ -10,8 +10,3 @@
  (modules nn)
  (libraries core variable))
 
-(executable
- (public_name hod)
- (name hod)
- (modules hod)
- (libraries core variable))

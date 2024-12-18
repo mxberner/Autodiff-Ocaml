@@ -104,6 +104,6 @@ val print_table : t VariableHashtbl.t -> unit
 
 (* Machine Learning Function *)
 
-val sigmoid: v -> v
-
-val binary_cross_entropy: v -> v -> v
+val sigmoid : v -> v
+val leaky_relu : ?alpha:float -> v -> v
+val binary_cross_entropy : v -> v -> v
