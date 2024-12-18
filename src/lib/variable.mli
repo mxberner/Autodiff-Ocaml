@@ -70,7 +70,6 @@ val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
 val ( / ) : v -> v -> v
-val ( ** ) : v -> float -> v
 val ( = ) : v -> v -> bool
 
 (* Tensor operations with gradient calculations *)

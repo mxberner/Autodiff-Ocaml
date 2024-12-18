@@ -145,7 +145,6 @@ let ( + ) = add
 let ( - ) = sub
 let ( * ) = mul
 let ( / ) = div
-let ( ** ) = pow
 
 (* Gradient computation *)
 let rec compute_gradients gradients variable path_value =

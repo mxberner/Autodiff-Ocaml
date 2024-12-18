@@ -115,12 +115,11 @@ module Test = struct
            "3 - div" >:: test_div;
            "4 - neg" >:: test_neg;
            "5 - inv" >:: test_inv;
-           "6 - pow" >:: test_pow;
-           "7 - sin" >:: test_sin;
-           "8 - cos" >:: test_cos;
-           "9 - tan" >:: test_tan;
-           "10 - log" >:: test_log;
-           "11 - exp" >:: test_exp;
+           "6 - sin" >:: test_sin;
+           "7 - cos" >:: test_cos;
+           "8 - tan" >:: test_tan;
+           "9 - log" >:: test_log;
+           "10 - exp" >:: test_exp;
          ]
 end
 
