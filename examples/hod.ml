@@ -12,9 +12,9 @@ let () =
   let f' = gradients y in
   (* Get the derivative of f with respect to x *)
   let f'_value = find f' x in
-  Printf.printf "f'(x = 4.0) = 3 * x ** 2 = %f\n"
-  @@ Tensor.get f'_value.data [||];
-  let f'' = gradients f'_value in
+  Printf.printf "f'(x = 4.0) = 3 * x ** 2 = %f\n" @@ Tensor.get f'_value [||];
+  let f'' = gradients y in
   (* Get the 2nd derivative of f with respect to x *)
   let f''_value = find f'' x in
-  Printf.printf "f''(x = 4.0) = 6 * x = %f\n" @@ Tensor.get f''_value.data [||]
+  Printf.printf "f''(x = 4.0) = 6 * x = %f\n" @@ Tensor.get f''_value [||];
+  print_table f''

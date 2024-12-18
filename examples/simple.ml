@@ -23,10 +23,10 @@ let auto_diff_result_f1 f =
   | dfda, dfdb ->
       (* Print the partial derivative *)
       Printf.printf "The partial derivative of y with respect to a = %f\n"
-      @@ Tensor.get dfda.data [||];
+      @@ Tensor.get dfda [||];
       (* Print the partial derivative *)
       Printf.printf "The partial derivative of y with respect to b = %f\n"
-      @@ Tensor.get dfdb.data [||]
+      @@ Tensor.get dfdb [||]
 
 let auto_diff_result_f2 f =
   print_endline "Autodiff Gradient Result";
@@ -35,7 +35,7 @@ let auto_diff_result_f2 f =
   (* Get the gradient of d with respect to a *)
   let grad = find g_tbl x in
   Printf.printf "The partial derivative of y with respect to x = %f\n"
-  @@ Tensor.get grad.data [||]
+  @@ Tensor.get grad [||]
 
 let numerical_estimate_result_f1 () =
   print_endline "Numerical Estimation (check the result of auto grad)";
