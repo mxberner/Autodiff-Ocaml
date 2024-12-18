@@ -69,10 +69,6 @@ module Test = struct
     let res = find f'' x in
     assert_equal ~printer:string_of_float 0.03125 @@ T.get res.data [||]
 
-  let test_pow _ =
-    let f' = gradients (pow x 3.0) in
-    let res = find f' x in
-    assert_equal ~printer:string_of_float 48.0 @@ T.get res.data [||]
 
   let test_sin _ =
     let f' = gradients (sin x) in

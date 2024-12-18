@@ -36,9 +36,6 @@ val inv : v -> v
 val sub : v -> v -> v
 (* Create the variable that results from subtracting two variables *)
 
-val pow : v -> float -> v
-(* Power of the variable *)
-
 val compare : v -> v -> int
 (* Compare two variable float values *)
 

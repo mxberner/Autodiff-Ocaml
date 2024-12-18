@@ -91,16 +91,6 @@ let log (x : v) =
   let local_gradients = [ (x, fun path_value -> div path_value x) ] in
   make data ~local_gradients
 
-let pow (x : v) (exp : float) =
-  let data = pow x.data exp in
-  let local_gradients =
-    [
-      ( x,
-        fun path_value ->
-          mul path_value @@ mul (const exp) @@ make (pow x.data (exp -. 1.0)) );
-    ]
-  in
-  make data ~local_gradients
 
 (* Trigonometric operations *)
 let sin (x : v) =
