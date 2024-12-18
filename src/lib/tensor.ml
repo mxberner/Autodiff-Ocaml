@@ -9,7 +9,6 @@ exception DimensionMismatch of string
 exception OnlyVectorDotProductSupported
 exception OnlyMatrixProductSupported
 exception AxisOutOfBounds
-exception Unsupported
 
 let get = Genarray.get
 let shape = Genarray.dims
@@ -392,7 +391,7 @@ let reshape (t : t) (new_dims : dims) : t =
   else
     let result = zeros new_dims in
 
-    let rec convert_index idx dims =
+    let convert_index idx dims =
       let n = Array.length dims in
       Array.init n ~f:(fun i ->
           let stride =

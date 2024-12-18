@@ -1,7 +1,6 @@
 (rule
  (target project.zip)
  (deps
-  src/lib/optimizer.mli
   src/lib/tensor.mli
   src/lib/variable.mli
   src/lib/dune
@@ -9,7 +8,6 @@
   
   examples/simple.ml
   examples/nn.ml
-  examples/hod.ml
   )
  (action
   (run zip -R project.zip %{deps})))

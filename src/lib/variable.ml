@@ -197,6 +197,22 @@ let softmax ?(axis = -1) (v : v) : v =
   let local_gradients = [ (v, fun _ -> exp_a.data / s.data) ] in
   make data ~local_gradients
 
+(* Leaky ReLU activation function *)
+let leaky_relu ?(alpha = 0.01) (x : v) : v =
+  let data =
+    Tensor.map (fun v -> if Float.(v > 0.0) then v else alpha *. v) x.data
+  in
+  let local_gradients =
+    [
+      ( x,
+        fun path_value ->
+          Tensor.map2
+            (fun v grad -> if Float.(v > 0.0) then grad else alpha *. grad)
+            x.data path_value );
+    ]
+  in
+  make data ~local_gradients
+
 (* Operator overloading *)
 let ( = ) = equal
 let ( + ) = add
@@ -217,7 +233,6 @@ let print v =
 let print_table (grad_tbl : t VariableHashtbl.t) =
   Hashtbl.iter_keys grad_tbl ~f:(fun e ->
       Printf.printf "%d %f \n" e.id @@ Tensor.get e.data [||])
-
 
 (* Sigmoid activation function *)
 let sigmoid (x : v) : v =

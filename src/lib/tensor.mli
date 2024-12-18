@@ -106,7 +106,7 @@ val flatten : t -> t
 (** [flatten t] flattens the tensor into a one-dimensional vector, regardless of its
                 original shape. *)
 
-val reshape : t -> int list -> t
+val reshape : t -> int array -> t
 (** [reshape t dims] reshapes the tensor to the specified dimensions. (not supported) *)
 
 val neg : t -> t
@@ -115,8 +115,7 @@ val neg : t -> t
 val swapaxes : t -> int -> int -> t
 (** [swapaxes t axis1 axis2] Interchange two axes of an array.  *)
 
-val where : t -> t-> t
-
+val where : t -> t -> t -> t
 val print : t -> unit
 
 (* Operator overloading *)
