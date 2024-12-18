@@ -98,6 +98,16 @@ module Test = struct
          (Float.abs (2.34055012186162 -. T.get dfdx.data [||]))
          tolerance)
 
+  let test_log _ =
+    let f' = gradients (log x) in
+    let dfdx = find f' x in
+    assert_equal 0.25 @@ T.get dfdx.data [||]
+
+  let test_exp _ =
+    let f' = gradients (exp x) in
+    let dfdx = find f' x in
+    assert_equal 54.598150033144236 @@ T.get dfdx.data [||]
+
   let series =
     "Given tests"
     >::: [
@@ -110,6 +120,8 @@ module Test = struct
            "7 - sin" >:: test_sin;
            "8 - cos" >:: test_cos;
            "9 - tan" >:: test_tan;
+           "10 - log" >:: test_log;
+           "11 - exp" >:: test_exp;
          ]
 end
 
