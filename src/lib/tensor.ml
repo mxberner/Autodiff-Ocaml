@@ -60,6 +60,9 @@ let sub t1 t2 = map2 ( -. ) t1 t2
 (* Element-wise multiplication *)
 let mul t1 t2 = map2 ( *. ) t1 t2
 
+(* Element-wise division *)
+let div t1 t2 = map2 ( /. ) t1 t2
+
 (* Common operations *)
 let log t = map F.log t
 let exp t = map F.exp t
@@ -210,9 +213,13 @@ let reshape _ _ =
   failwith "Reshape is not supported for this tensor representation."
 
 (* Print *)
-let print t = iter (fun e -> Printf.printf "%f" e) t
+let print (t : t) = iter (fun e -> Printf.printf "%f" e) t
+
+(* Swapaxes *)
+let swapaxes (t : t) (_ : int) (_ : int) : t = t
 
 (* Operator overloading *)
 let ( + ) = add
 let ( - ) = sub
 let ( * ) = mul
+let ( / ) = div

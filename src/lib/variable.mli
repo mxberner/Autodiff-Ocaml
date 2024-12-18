@@ -1,12 +1,12 @@
 open Tensor
 
-type v = { id : int; data : t; local_gradients : (v * (v -> v)) list }
+type v = { id : int; data : t; local_gradients : (v * (t -> t)) list }
 
 module VariableHashtbl : sig
   type 'a t
 end
 
-val make : ?local_gradients:(v * (v -> v)) list -> t -> v
+val make : ?local_gradients:(v * (t -> t)) list -> t -> v
 (* Create the variable from a Tensor *)
 
 val zero : unit -> v
@@ -36,9 +36,6 @@ val inv : v -> v
 val sub : v -> v -> v
 (* Create the variable that results from subtracting two variables *)
 
-val pow : v -> float -> v
-(* Power of the variable *)
-
 val compare : v -> v -> int
 (* Compare two variable float values *)
 
@@ -60,21 +57,11 @@ val exp : v -> v
 val log : v -> v
 (* log of the variable *)
 
-val gradients : v -> v VariableHashtbl.t
+val gradients : v -> t VariableHashtbl.t
 (* Compute the *local gradients* of all the variable *)
 
-val find : v VariableHashtbl.t -> v -> v
+val find : t VariableHashtbl.t -> v -> t
 (* Find the local gradient of a variable *)
-
-val print : v -> unit
-
-(* Operator overloading *)
-val ( + ) : v -> v -> v
-val ( - ) : v -> v -> v
-val ( * ) : v -> v -> v
-val ( / ) : v -> v -> v
-val ( ** ) : v -> float -> v
-val ( = ) : v -> v -> bool
 
 (* Tensor operations with gradient calculations *)
 
@@ -83,15 +70,24 @@ val get : v -> dims -> float
 val sum : v -> v
 (** [sum v] computes the sum of all elements in the tensor, returning a scalar value. *)
 
-val dot : v -> v -> v
-(** [dot v1 v2] computes the dot product of two vectors. *)
+(* Machine Learning Operations *)
 
 val matmul : v -> v -> v
 (** [matmul v1 v2] performs matrix multiplication on two matrices.
         The number of columns in the first matrix must match the number of rows in the
         second matrix. *)
 
-val map : (float -> float) -> v -> v
-(** [matmul v1 v2] performs matrix multiplication on two matrices.
-        The number of columns in the first matrix must match the number of rows in the
-        second matrix. *)
+(* Operator overloading *)
+val ( + ) : v -> v -> v
+val ( - ) : v -> v -> v
+val ( * ) : v -> v -> v
+val ( / ) : v -> v -> v
+val ( = ) : v -> v -> bool
+
+(* Printing Ops *)
+
+val print : v -> unit
+(* Print the value of a variable *)
+
+val print_table : t VariableHashtbl.t -> unit
+(* **DEBUG** Print the gradient hash_table *)

@@ -21,7 +21,7 @@ val shape : t -> dims
 (** [shape tensor] returns the dimensions of the tensor, 
     record with [rows] and [cols] fields. *)
 
-val create :  ?dims:dims -> float -> t
+val create : ?dims:dims -> float -> t
 (** [create dims v] creates a tensor (scalar, vector, or matrix) with the specified 
         dimensions, filled with float [v]. *)
 
@@ -64,9 +64,8 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 (** [mul t1 t2] performs element-wise multiplication of the two tensors.*)
 
-(* val div : t -> float -> t *)
-(** [div t scalar] divides each element of the tensor by the scalar value.
-       Raises an exception if attempting to divide by zero. *)
+val div : t -> t -> t
+(** [div t1 t2]  performs element-wise divison of the two tensors. *)
 
 val pow : t -> float -> t
 (** [pow t exponent] raises each element of the tensor to the power of [exponent]. *)
@@ -112,6 +111,9 @@ val reshape : t -> int list -> t
 val neg : t -> t
 (** [neg t] negates each element of the tensor, i.e., multiplies each element by -1. *)
 
+val swapaxes : t -> int -> int -> t
+(** [swapaxes t axis1 axis2] Interchange two axes of an array.  *)
+
 val print : t -> unit
 
 (* Operator overloading *)
@@ -124,5 +126,7 @@ val ( - ) : t -> t -> t
 val ( * ) : t -> t -> t
 (** [t1 * t2] performs element-wise multiplication of the two tensors. *)
 
-(* val ( / ) : t -> float -> t *)
-(** [tensor / scalar] divides each element of the tensor by the scalar. *)
+val ( / ) : t -> t -> t
+(** [t1 / t2] performs element-wise multiplication of the two tensors.*)
+
+
