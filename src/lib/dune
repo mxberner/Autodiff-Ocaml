@@ -11,9 +11,9 @@
 (library
  (name tensor)
  (modules tensor)
- (libraries core variable))
+ (libraries core))
 
 (library
  (name variable)
  (modules variable)
- (libraries core))
+ (libraries core tensor))
