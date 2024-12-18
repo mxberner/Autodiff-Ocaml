@@ -75,3 +75,23 @@ val ( * ) : v -> v -> v
 val ( / ) : v -> v -> v
 val ( ** ) : v -> float -> v
 val ( = ) : v -> v -> bool
+
+(* Tensor operations with gradient calculations *)
+
+val get : v -> dims -> float
+
+val sum : v -> v
+(** [sum v] computes the sum of all elements in the tensor, returning a scalar value. *)
+
+val dot : v -> v -> v
+(** [dot v1 v2] computes the dot product of two vectors. *)
+
+val matmul : v -> v -> v
+(** [matmul v1 v2] performs matrix multiplication on two matrices.
+        The number of columns in the first matrix must match the number of rows in the
+        second matrix. *)
+
+val map : (float -> float) -> v -> v
+(** [matmul v1 v2] performs matrix multiplication on two matrices.
+        The number of columns in the first matrix must match the number of rows in the
+        second matrix. *)

@@ -211,17 +211,17 @@ module Test = struct
 
   let test_sum _ =
     (* Sum of scalar *)
-    assert_equal 1.0 @@ T.sum @@ T.ones [||];
+    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [||]) [||];
 
     (* Sum of various dimensional tensors *)
-    assert_equal 1.0 @@ T.sum @@ T.ones [| 1 |];
-    assert_equal 2.0 @@ T.sum @@ T.ones [| 1; 2 |];
-    assert_equal 6.0 @@ T.sum @@ T.ones [| 1; 2; 3 |];
+    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [| 1 |]) [||];
+    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [| 1; 2 |]) [||];
+    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [| 1; 2; 3 |]) [||];
 
     (* Sum of random tensors *)
     let test_random_sum dims =
       let random = T.random dims in
-      let sum_val = T.sum random in
+      let sum_val = T.get (T.sum random) [||] in
       assert_bool "Sum should be non-negative" (sum_val >= 0.0);
       assert_bool "Sum should be less than tensor size"
         (sum_val < float_of_int (List.fold_left ( * ) 1 @@ Array.to_list dims))

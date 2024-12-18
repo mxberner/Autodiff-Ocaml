@@ -87,7 +87,7 @@ val cos : t -> t
 val tan : t -> t
 (** [tan t] applies the tangent function element-wise to each element of the tensor. *)
 
-val sum : t -> float
+val sum : t -> t
 (** [sum t] computes the sum of all elements in the tensor, returning a scalar value. *)
 
 val dot : t -> t -> t

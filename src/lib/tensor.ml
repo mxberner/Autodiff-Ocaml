@@ -32,7 +32,7 @@ let random ?seed (dims : int array) : t =
   let a = Genarray.init float32 c_layout dims (fun _ -> Random.float 1.0) in
   a
 
-let map f t =
+let map (f : float -> float) (t : t) =
   let map_f i = f (Genarray.get t i) in
   let dims = shape t in
   Genarray.init float32 c_layout dims map_f
@@ -93,13 +93,13 @@ let iter f t =
   in
   iter_ith f t index
 
-let sum t =
+let sum (t : t) : t =
   let dims = shape t in
-  if Array.length dims = 0 then Genarray.get t [||]
+  if Array.length dims = 0 then t
   else
     let total : float ref = ref 0.0 in
     iter (fun e -> total := !total +. e) t;
-    !total
+    create !total
 
 let dot t1 t2 =
   let d1 = shape t1 and d2 = shape t2 in
@@ -107,11 +107,7 @@ let dot t1 t2 =
     raise OnlyVectorDotProductSupported
   else if d1.(0) <> d2.(0) then
     raise (DimensionMismatch (Printf.sprintf "(%d) and (%d)" d1.(0) d2.(0)))
-  else
-    let s = sum @@ mul t1 t2 in
-    let a = Genarray.create float32 c_layout [||] in
-    Genarray.fill a s;
-    a
+  else sum @@ mul t1 t2
 
 (* Matrix product *)
 let matmul t1 t2 =

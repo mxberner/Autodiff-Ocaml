@@ -23,7 +23,8 @@ let make ?(local_gradients : (v * (v -> v)) list = []) (data : t) =
 let const f = make (zeros [||] |> map (fun _ -> f))
 let zero () = const 0.0
 let one () = const 1.0
-let random ?seed dims = make (random ?seed dims)
+let random ?(seed : int option) (dims : dims) = make (random ?seed dims)
+let get (v : v) (dims : dims) : float = get v.data dims
 
 (* Tensor-aware operations *)
 let add (x : v) (y : v) =
@@ -145,7 +146,7 @@ let exp (x : v) =
   make data ~local_gradients
 
 (* Comparison and equality *)
-let compare a b = Float.compare (get a.data [||]) (get b.data [||])
+let compare a b = Float.compare (get a [||]) (get b [||])
 let equal a b = compare a b = 0
 
 (* Operator overloading *)
@@ -188,8 +189,36 @@ let find grad_tbl a =
 (* Printing *)
 let print v =
   let dims = shape v.data in
-  if Int.equal (Array.length dims) 0 then Printf.printf "%f " (get v.data [||])
+  if Int.equal (Array.length dims) 0 then Printf.printf "%f " (get v [||])
   else
     Printf.printf "Tensor of shape %s\n"
       (String.concat ~sep:"x" @@ Array.to_list
       @@ Array.map ~f:string_of_int dims)
+
+let sum (x : v) =
+  let data = sum x.data in
+  let local_gradients =
+    [ (x, fun path_value -> mul path_value @@ make data) ]
+  in
+  make data ~local_gradients
+
+let dot (x : v) (y : v) =
+  let data = dot x.data y.data in
+  let local_gradients =
+    [ (x, fun path_value -> mul path_value @@ make data) ]
+  in
+  make data ~local_gradients
+
+let matmul (x : v) (y : v) =
+  let data = matmul x.data y.data in
+  let local_gradients =
+    [ (x, fun path_value -> mul path_value @@ make data) ]
+  in
+  make data ~local_gradients
+
+let map (f : float -> float) (x : v) =
+  let data = map f x.data in
+  let local_gradients =
+    [ (x, fun path_value -> mul path_value @@ make data) ]
+  in
+  make data ~local_gradients
