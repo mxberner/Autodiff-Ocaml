@@ -88,7 +88,7 @@ let inv (x : v) =
 
 let log (x : v) =
   let data = log x.data in
-  let local_gradients = [ (x, fun path_value -> mul path_value @@ inv x) ] in
+  let local_gradients = [ (x, fun path_value -> div path_value x) ] in
   make data ~local_gradients
 
 let pow (x : v) (exp : float) =

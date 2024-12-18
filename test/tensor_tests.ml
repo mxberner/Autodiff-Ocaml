@@ -214,9 +214,9 @@ module Test = struct
     assert_equal 1.0 @@ T.get (T.sum @@ T.ones [||]) [||];
 
     (* Sum of various dimensional tensors *)
-    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [| 1 |]) [||];
-    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [| 1; 2 |]) [||];
-    assert_equal 1.0 @@ T.get (T.sum @@ T.ones [| 1; 2; 3 |]) [||];
+    assert_equal ~printer:string_of_float 1.0 @@ T.get (T.sum @@ T.ones [| 1 |]) [||];
+    assert_equal ~printer:string_of_float 2.0 @@ T.get (T.sum @@ T.ones [| 1; 2 |]) [||];
+    assert_equal ~printer:string_of_float 6.0 @@ T.get (T.sum @@ T.ones [| 1; 2; 3 |]) [||];
 
     (* Sum of random tensors *)
     let test_random_sum dims =

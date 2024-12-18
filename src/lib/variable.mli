@@ -95,3 +95,5 @@ val map : (float -> float) -> v -> v
 (** [matmul v1 v2] performs matrix multiplication on two matrices.
         The number of columns in the first matrix must match the number of rows in the
         second matrix. *)
+
+(* Machine Learning Operations *)

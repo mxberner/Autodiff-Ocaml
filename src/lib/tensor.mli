@@ -21,7 +21,7 @@ val shape : t -> dims
 (** [shape tensor] returns the dimensions of the tensor, 
     record with [rows] and [cols] fields. *)
 
-val create :  ?dims:dims -> float -> t
+val create : ?dims:dims -> float -> t
 (** [create dims v] creates a tensor (scalar, vector, or matrix) with the specified 
         dimensions, filled with float [v]. *)
 
@@ -125,4 +125,4 @@ val ( * ) : t -> t -> t
 (** [t1 * t2] performs element-wise multiplication of the two tensors. *)
 
 (* val ( / ) : t -> float -> t *)
-(** [tensor / scalar] divides each element of the tensor by the scalar. *)
+(** [t / scalar] divides each element of the tensor by the scalar. *)
