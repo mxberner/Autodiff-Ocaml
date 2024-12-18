@@ -80,7 +80,21 @@ module Test = struct
   let test_tan _ =
     let f' = gradients (tan x) in
     let res = find f' x in
-    assert_equal 2.34055012186162 res.value
+    assert_equal 2.34055012186162 res.value 
+
+  let test_log _ =
+    let f' = gradients (log x) in
+    let res = find f' x in
+    assert_equal 0.25 res.value 
+
+  let test_exp _ =
+    let f' = gradients (exp x) in
+    let res = find f' x in
+    assert_equal 54.598150033144236 res.value 
+
+  let test_print _ =
+    let res = print x in
+    assert_equal (Printf.printf "4.0") res 
 
   let series =
     "Given tests"
@@ -93,7 +107,10 @@ module Test = struct
            "6 - pow" >:: test_pow;
            "7 - sin" >:: test_sin;
            "8 - cos" >:: test_cos;
-           "9 - tan" >:: test_tan;
+           "9 - tan" >:: test_tan; 
+           "10 - log" >:: test_log;
+           "11 - exp" >:: test_exp;
+           "12 - print" >:: test_print;
          ]
 end
 
