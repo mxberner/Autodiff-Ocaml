@@ -5,7 +5,7 @@
 The project implements an **Automatic Differentiation** library in OCaml.
 
 Automatic differentiation is an algorithm used to evaluate partial derivatives of functions. Automatic differentiation is more efficient than symbolic differentiation, and more accurate than numeric differentiation. Our library can be used to define functions using our `Variable` and `Tensor` modules. One can then find gradients and various partial derivatives of these functions. 
-Examples are listed below. We also use the `Bigarray` library to build our tensors, so that needs to be installed.
+Examples are listed below. We also use the `Bigarray` library to build our tensors, so that needs to be installed. 
 
 ## Building and Running Examples
 
@@ -38,7 +38,7 @@ dune exec <example_name>
 
 When building a function representation, the function is split into primitives defined by `Variable` module. 
 This results in a directed acyclic graph (DAG) where each node contains an `id`, the actual `Tensor.t` value and its calculated gradient based on function primitive type. Additionally there is an `operation` tag that specifies if the graph entry is a function of two variables, or one variable. This is mostly useful for demo purposes and looking into the computational graph.
-This graph is implicitly formed through the use of a hashtable of type v in the `Variable` module. Both the `Tensor` and `Variable` modules have accompanying tests. 
+This graph is implicitly formed through the use of a hashtable of type v in the `Variable` module. Both the `Tensor` and `Variable` modules have accompanying tests. The oplot and graph libraries that we downloaded weren't ultimately of use, so they just remain with their demos.
 
 # Features
 
