@@ -29,7 +29,7 @@
  (libraries core variable)) 
 
  (executable
- (public_name printed_table)
- (name printed_table)
- (modules printed_table)
+ (public_name printed)
+ (name printed)
+ (modules printed)
  (libraries core variable))
