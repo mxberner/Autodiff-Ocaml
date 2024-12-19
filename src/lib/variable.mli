@@ -107,3 +107,7 @@ val print_table : t VariableHashtbl.t -> unit
 val sigmoid : v -> v
 val leaky_relu : ?alpha:float -> v -> v
 val binary_cross_entropy : v -> v -> v
+
+
+val visualize : v -> string -> unit
+(* Visualize the computation graph of a variable *)

@@ -21,3 +21,9 @@
  (name basic)
  (modules basic)
  (libraries core tensor))
+
+ (executable
+ (public_name visualize)
+ (name visualize)
+ (modules visualize)
+ (libraries core variable))
