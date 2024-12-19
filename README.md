@@ -41,7 +41,7 @@ dune exec <example_name>
 ```
 
 ### Examples
-- [x] basic - Runs basic operations using tensor module. 
+- [x] basic - Runs some basic operations using tensor module. 
 - [x] simple - Run autodifferentiation on a simple function.
 - [x] hod - Demonstrates higher order derivatives.
 - [x] nn - Train a single layer neural network on some random data.
