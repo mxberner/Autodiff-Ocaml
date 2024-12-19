@@ -1,6 +1,6 @@
 open Tensor
 
-type v = { id : int; data : t; local_gradients : (v * (t -> t)) list }
+type v = { id : int; data : t; local_gradients : (v * (t -> t)) list;  operation : string; }
 
 module VariableHashtbl : sig
   type 'a t
