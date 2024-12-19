@@ -117,6 +117,7 @@ val swapaxes : t -> int -> int -> t
 
 val where : t -> t -> t -> t
 val print : t -> unit
+val formatted_print : t -> unit
 
 (* Operator overloading *)
 val ( + ) : t -> t -> t
