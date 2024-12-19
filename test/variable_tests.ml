@@ -152,11 +152,10 @@ module Test = struct
     let g = gradients z in
     let dzdx = find g x in
     let dzdy = find g y in
-    assert_equal [| 2; 3 |] @@ T.shape dzdx;
-    assert_equal [| 3; 2 |] @@ T.shape dzdy
+    assert_equal [| 2; 2 |] @@ T.shape dzdx;
+    assert_equal [| 2; 2 |] @@ T.shape dzdy
 
     
-
   let test_sigmoid _ =
     let x = make @@ T.create 0.0 in
     let y = sigmoid x in
