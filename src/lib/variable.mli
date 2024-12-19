@@ -1,11 +1,6 @@
 open Tensor
 
-<<<<<<< Updated upstream
-type v = { id : int; data : t; local_gradients : (v * (t -> t)) list; operation : string}
-(* Variable type *)
-=======
-type v = { id : int; mutable data : t; local_gradients : (v * (t -> t)) list }
->>>>>>> Stashed changes
+type v = { id : int; data : t; local_gradients : (v * (t -> t)) list }
 
 module VariableHashtbl : sig
   type 'a t

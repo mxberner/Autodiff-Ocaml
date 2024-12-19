@@ -2,7 +2,12 @@ open Core
 open Tensor
 
 (* Variable type *)
-type v = { id : int; data : t; local_gradients : (v * (t -> t)) list; operation : string }
+type v = {
+  id : int;
+  data : t;
+  local_gradients : (v * (t -> t)) list;
+  operation : string;
+}
 
 (* Hashtable of variables used for our computational graph *)
 module VariableHashtbl = Hashtbl.Make (struct
@@ -17,7 +22,8 @@ end)
 let variable_counter : int ref = ref 0
 
 (* Creates the variable from a Tensor *)
-let make ?(local_gradients : (v * (t -> t)) list = []) ?(operation: string = "self") (data : t) =
+let make ?(local_gradients : (v * (t -> t)) list = [])
+    ?(operation : string = "self") (data : t) =
   let id = !variable_counter in
   variable_counter := Int.( + ) !variable_counter 1;
   { id; data; local_gradients; operation }
@@ -145,7 +151,7 @@ let add (x : v) (y : v) =
       (y, fun path_value -> path_value);
       (* d/dy (x + y) = 1 *)
     ]
-  in 
+  in
   let operation = "add" in
   make data ~local_gradients ~operation
 
@@ -173,7 +179,7 @@ let div (x : v) (y : v) =
       (y, fun path_value -> path_value * neg a.data / (b.data * b.data))
       (* d/dy (x / y) = -x/(y*y) *);
     ]
-  in 
+  in
   let operation = "mul" in
   make data ~local_gradients ~operation
 
@@ -181,7 +187,7 @@ let inv (x : v) =
   let data = map (fun v -> 1.0 /. v) x.data in
   let local_gradients =
     [ (x, fun path_value -> neg (path_value / (x.data * x.data))) ]
-  in 
+  in
   let operation = "inv" in
   make data ~local_gradients ~operation
 
@@ -198,14 +204,14 @@ let sub (x : v) (y : v) = add x @@ neg y
 (* Logarithmic operation *)
 let log (x : v) =
   let data = log x.data in
-  let local_gradients = [ (x, fun path_value -> path_value / x.data) ] in 
+  let local_gradients = [ (x, fun path_value -> path_value / x.data) ] in
   let operation = "log" in
   make data ~local_gradients ~operation
 
 (* Exponent operation *)
 let exp (x : v) =
   let data = exp x.data in
-  let local_gradients = [ (x, fun path_value -> path_value * exp x.data) ] in 
+  let local_gradients = [ (x, fun path_value -> path_value * exp x.data) ] in
   let operation = "exp" in
   make data ~local_gradients ~operation
 
@@ -214,7 +220,7 @@ let sin (x : v) =
   let data = sin x.data in
   let local_gradients =
     [ (x, fun path_value -> path_value * Tensor.cos x.data) ]
-  in 
+  in
   let operation = "sin" in
   make data ~local_gradients ~operation
 
@@ -222,7 +228,7 @@ let cos (x : v) =
   let data = cos x.data in
   let local_gradients =
     [ (x, fun path_value -> path_value * Tensor.neg (Tensor.sin x.data)) ]
-  in 
+  in
   let operation = "cos" in
   make data ~local_gradients ~operation
 
@@ -239,7 +245,7 @@ let tan (x : v) =
                 1. /. (cs *. cs))
               x.data );
     ]
-  in 
+  in
   let operation = "tan" in
   make data ~local_gradients ~operation
 
@@ -252,7 +258,6 @@ let rec compute (grad_tbl : t VariableHashtbl.t) (var : v) (path_value : t) =
   List.iter
     ~f:(fun (child_variable, multipy_by_locg_f) ->
       (* Multiply edges of a path *)
-
       let gradient_value_of_path = multipy_by_locg_f path_value in
       (* Add the different paths *)
       let prev_grad =
@@ -293,13 +298,13 @@ let matmul (x : v) (y : v) =
       (a, fun path_value -> path_value * swapaxes a.data Int.(m - 2) Int.(m - 1));
       (b, fun path_value -> swapaxes b.data Int.(n - 2) Int.(n - 1) * path_value);
     ]
-  in 
+  in
   let operation = "matmul" in
   make data ~local_gradients ~operation
 
 let transpose (v : v) : v =
   let data = transpose v.data in
-  let local_gradients = [ (v, fun path_value -> transpose path_value) ] in 
+  let local_gradients = [ (v, fun path_value -> transpose path_value) ] in
   let operation = "transpose" in
   make data ~local_gradients ~operation
 
@@ -308,7 +313,7 @@ let softmax ?(axis = -1) (v : v) : v =
   let exp_a = exp v in
   let s = sum ~axis v in
   let data = Tensor.exp v.data in
-  let local_gradients = [ (v, fun _ -> exp_a.data / s.data) ] in 
+  let local_gradients = [ (v, fun _ -> exp_a.data / s.data) ] in
   let operation = "softmax" in
   make data ~local_gradients ~operation
 
@@ -325,7 +330,7 @@ let leaky_relu ?(alpha = 0.01) (x : v) : v =
             (fun v grad -> if Float.(v > 0.0) then grad else alpha *. grad)
             x.data path_value );
     ]
-  in 
+  in
   let operation = "leaky_relu" in
   make data ~local_gradients ~operation
 
@@ -365,3 +370,29 @@ let binary_cross_entropy (y_true : v) (y_pred : v) : v =
   let term2 = (one - y_true) * log (one - y_pred + epsilon) in
   let loss = neg (sum (term1 + term2)) in
   loss
+
+(*Outputting computation graph*)
+let visualize (var : v) (output_file : string) =
+  let visited = Hashtbl.create (module Int) in
+  let buffer = Buffer.create 1024 in
+  Buffer.add_string buffer "digraph computation_graph {\n";
+
+  let rec visit_node (node : v) =
+    if not (Hashtbl.mem visited node.id) then (
+      Hashtbl.add_exn visited ~key:node.id ~data:();
+      (* Add node label *)
+      Buffer.add_string buffer
+        (Printf.sprintf "  node%d [label=\"id: %d\\ndata: %.2f\"];\n" node.id
+           node.id
+           (Tensor.get node.data [||]));
+      (* Add edges *)
+      List.iter node.local_gradients ~f:(fun (child, _) ->
+          Buffer.add_string buffer
+            (Printf.sprintf "  node%d -> node%d;\n" node.id child.id);
+          visit_node child))
+  in
+
+  visit_node var;
+  Buffer.add_string buffer "}\n";
+  Out_channel.write_all output_file ~data:(Buffer.contents buffer);
+  Printf.printf "Computation graph written to %s\n" output_file
