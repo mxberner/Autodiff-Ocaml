@@ -88,7 +88,10 @@ val tan : t -> t
 (** [tan t] applies the tangent function element-wise to each element of the tensor. *)
 
 val sum : ?axis:int -> t -> t
-(** [sum t] computes the sum of all elements in the tensor, returning a scalar value. *)
+(** [sum ?axis t] 
+ if axis specified, computes the sum of all elements on an axis in the tensor, returning a scalar value. 
+ otherwise, computes the sum of all elements in the tensor
+ *)
 
 val dot : t -> t -> t
 (** [dot t1 t2] computes the dot product of two vectors. *)

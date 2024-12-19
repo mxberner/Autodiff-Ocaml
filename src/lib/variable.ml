@@ -169,11 +169,12 @@ let find grad_tbl a =
   let f = Hashtbl.find grad_tbl a in
   match f with Some x -> x | None -> failwith "Gradient not found"
 
-let sum ?(axis = -1) (x : v) =
-  let data = sum ~axis x.data in
-  let local_gradients = [ (x, fun path_value -> path_value + data) ] in 
-  let operation = "sum" in
-  make data ~local_gradients ~operation
+let sum ?axis (x : v) =
+  let data =
+    match axis with Some axis -> sum ~axis x.data | None -> sum x.data
+  in
+  let local_gradients = [ (x, fun path_value -> path_value + data) ] in
+  make data ~local_gradients
 
 let matmul (x : v) (y : v) =
   let data = matmul x.data y.data in
@@ -247,8 +248,7 @@ let sigmoid (x : v) : v =
 (* Binary cross-entropy loss *)
 let binary_cross_entropy (y_true : v) (y_pred : v) : v =
   (* let epsilon = create 1e-7 in
-  let one = create 1.0 in *)
-
+     let one = create 1.0 in *)
   sum y_true - sum y_pred
 
 (*Outputting computation graph*)
