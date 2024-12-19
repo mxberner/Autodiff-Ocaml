@@ -61,8 +61,8 @@ module Test = struct
     assert_equal [| 1; 2; 3; 4; 5 |] @@ T.shape large_tensor;
 
     (* Performance and memory allocation test *)
-    let huge_matrix = T.zeros [| 100; 100 |] in
-    assert_equal [| 100; 100 |] @@ T.shape huge_matrix;
+    let huge_matrix = T.zeros [| 10000; 10000 |] in
+    assert_equal [| 10000; 10000 |] @@ T.shape huge_matrix;
     assert_equal 0.0 @@ T.get huge_matrix [| 50; 50 |]
 
   let test_ones _ =

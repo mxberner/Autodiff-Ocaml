@@ -64,9 +64,15 @@ let train ?(learning_rate : float = 0.1) ?(epochs : int = 100) (x1 : v) (x2 : v)
 
 (* Main function *)
 let () =
-  let num_samples = 1000 in
+  Random.init 1;
+  let num_samples = 2 in
   let x1, x2, y_true, _ = generate_data num_samples in
-
+  Tensor.print x1.data;
+  print_endline "";
+  Tensor.print x2.data;
+  print_endline "";
+  Tensor.print y_true.data;
+  print_endline "";
   Printf.printf "Starting Neural Network Training\n";
   train x1 x2 y_true;
   Printf.printf "Training Complete\n"

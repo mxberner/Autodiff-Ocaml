@@ -10,3 +10,8 @@
  (modules nn)
  (libraries core variable))
 
+(executable
+ (public_name large)
+ (name large)
+ (modules large)
+ (libraries core variable))
