@@ -26,4 +26,10 @@
  (public_name visualize)
  (name visualize)
  (modules visualize)
+ (libraries core variable)) 
+
+ (executable
+ (public_name printed_table)
+ (name printed_table)
+ (modules printed_table)
  (libraries core variable))
