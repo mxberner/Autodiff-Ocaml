@@ -120,11 +120,8 @@ val swapaxes : t -> int -> int -> t
 
 val where : t -> t -> t -> t
 val print : t -> unit
-<<<<<<< Updated upstream
 val formatted_print : t -> unit
-=======
 val broadcast : t -> t -> t * t
->>>>>>> Stashed changes
 
 (* Operator overloading *)
 val ( + ) : t -> t -> t

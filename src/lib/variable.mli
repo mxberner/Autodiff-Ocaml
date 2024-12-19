@@ -118,12 +118,9 @@ val print_table : t VariableHashtbl.t -> unit
 val sigmoid : v -> v
 val leaky_relu : ?alpha:float -> v -> v
 val binary_cross_entropy : v -> v -> v
-<<<<<<< Updated upstream
 
 
 val visualize : v -> string -> unit
 (* Visualize the computation graph of a variable *)
-=======
 val broadcastinfo : dims -> dims -> dims * dims
 val enable_broadcast : ?matmul:bool -> v -> v -> v * v
->>>>>>> Stashed changes
