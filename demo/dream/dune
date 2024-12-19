@@ -1,4 +1,0 @@
-(executable
- (public_name dream_demo)
- (name dream_demo)
- (libraries dream))

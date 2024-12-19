@@ -15,3 +15,15 @@
  (name large)
  (modules large)
  (libraries core variable))
+
+(executable
+ (public_name basic)
+ (name basic)
+ (modules basic)
+ (libraries core tensor))
+
+ (executable
+ (public_name visualize)
+ (name visualize)
+ (modules visualize)
+ (libraries core variable))

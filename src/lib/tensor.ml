@@ -374,6 +374,27 @@ let flatten t =
 
 (* Print *)
 let print (t : t) = iter (fun e -> Printf.printf "%f, " e) t
+let formatted_print (t : t) =
+  let dims = Genarray.dims t in
+  let n = Array.length dims in
+  let rec print_indices current_indices current_depth =
+    if current_depth = n then
+      (* Print the value at the current index, followed by a space *)
+      Printf.printf "%f " (Genarray.get t current_indices)
+    else
+      for i = 0 to dims.(current_depth) - 1 do
+        current_indices.(current_depth) <- i;
+        print_indices current_indices (current_depth + 1)
+      done
+  in
+  let initial_indices = Array.init n ~f:(fun _ -> 0) in
+  (* Iterate over the first dimension (rows) *)
+  for i = 0 to dims.(0) - 1 do
+    initial_indices.(0) <- i;
+    Printf.printf "%s" (String.make 2 ' ');
+    print_indices initial_indices 1;
+    Printf.printf "\n"
+  done
 
 (* Reshape *)
 let reshape (t : t) (new_dims : dims) : t =

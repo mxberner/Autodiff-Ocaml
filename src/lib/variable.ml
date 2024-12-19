@@ -232,3 +232,31 @@ let binary_cross_entropy (y_true : v) (y_pred : v) : v =
   let one = create 1.0 in *)
 
   sum y_true - sum y_pred
+
+
+
+  (*Outputting computation graph*)
+let visualize (var : v) (output_file : string) =
+  let visited = Hashtbl.create (module Int) in
+  let buffer = Buffer.create 1024 in
+  Buffer.add_string buffer "digraph computation_graph {\n";
+
+  let rec visit_node (node : v) =
+    if not (Hashtbl.mem visited node.id) then (
+      Hashtbl.add_exn visited ~key:node.id ~data:();
+      (* Add node label *)
+      Buffer.add_string buffer
+        (Printf.sprintf
+           "  node%d [label=\"id: %d\\ndata: %.2f\"];\n" node.id node.id
+           (Tensor.get node.data [||]));
+      (* Add edges *)
+      List.iter node.local_gradients ~f:(fun (child, _) ->
+          Buffer.add_string buffer
+            (Printf.sprintf "  node%d -> node%d;\n" node.id child.id);
+          visit_node child))
+  in
+
+  visit_node var;
+  Buffer.add_string buffer "}\n";
+  Out_channel.write_all output_file ~data:(Buffer.contents buffer);
+  Printf.printf "Computation graph written to %s\n" output_file
