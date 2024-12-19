@@ -88,6 +88,27 @@ module Test = struct
          (Float.abs (54.598150033144236 -. T.get dfdx [||]))
          tolerance)
 
+  let test_matmul _ =
+    let x = make @@ T.create ~dims:[| 2; 3 |] 2.0 in
+    let y = make @@ T.create ~dims:[| 3; 2 |] 3.0 in
+    let z = matmul x y in
+    let g = gradients z in
+    let dzdx = find g x in
+    let dzdy = find g y in
+    assert_equal [| 2; 3 |] @@ T.shape dzdx;
+    assert_equal [| 3; 2 |] @@ T.shape dzdy
+
+    
+
+  let test_sigmoid _ =
+    let x = make @@ T.create 0.0 in
+    let y = sigmoid x in
+    let g = gradients y in
+    let dydx = find g x in
+    assert_equal 0.25 @@ T.get dydx [||]
+
+
+
   let series =
     "Given tests"
     >::: [
@@ -101,6 +122,8 @@ module Test = struct
            "8 - tan" >:: test_tan;
            "9 - log" >:: test_log;
            "10 - exp" >:: test_exp;
+           "11 - matmul" >:: test_matmul;
+           "12 - sigmoid" >:: test_sigmoid;
          ]
 end
 
