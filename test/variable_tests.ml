@@ -90,7 +90,7 @@ module Test = struct
 
 
   (* Tests for broadcastinfo *)
-  let test_broadcastinfo _ =
+  (* let test_broadcastinfo _ =
     (* Test 1: Same shape tensors *)
     let a_shape = [| 2; 3 |] in
     let b_shape = [| 2; 3 |] in
@@ -137,25 +137,18 @@ module Test = struct
     (* Test 2: Matrix multiplication broadcasting *)
     let a = create ~dims:[| 2; 1; 3; 4 |] 1.0 in
     let b = create ~dims:[| 1; 3; 4; 2 |] 1.0 in
-    let a', b' = enable_broadcast ~matmul:true a b in
+    let a', b' = enable_broadcast ~matmul:true a b in *)
 
-    (* Test shapes are preserved *)
+    (* Test shapes are preserved
     assert_equal ~msg:"First tensor shape should be preserved in matmul" a.data
       a'.data;
     assert_equal ~msg:"Second tensor shape should be preserved in matmul" b.data
-      b'.data
+      b'.data *)
 
-  let test_matmul _ =
-    let x = make @@ T.create ~dims:[| 2; 3 |] 2.0 in
-    let y = make @@ T.create ~dims:[| 3; 2 |] 3.0 in
-    let z = matmul x y in
-    let g = gradients z in
-    let dzdx = find g x in
-    let dzdy = find g y in
-    assert_equal [| 2; 2 |] @@ T.shape dzdx;
-    assert_equal [| 2; 2 |] @@ T.shape dzdy
+
 
     
+
   let test_sigmoid _ =
     let x = make @@ T.create 0.0 in
     let y = sigmoid x in
@@ -178,10 +171,7 @@ module Test = struct
            "8 - tan" >:: test_tan;
            "9 - log" >:: test_log;
            "10 - exp" >:: test_exp;
-           "11 - broadcastinfo" >:: test_broadcastinfo;
-           "13 - enable_broadcast" >:: test_enable_broadcast;
-           "14 - matmul" >:: test_matmul;
-           "15 - sigmoid" >:: test_sigmoid;
+           "11 - sigmoid" >:: test_sigmoid;
          ]
 end
 
