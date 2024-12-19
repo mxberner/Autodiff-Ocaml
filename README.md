@@ -5,9 +5,9 @@
 The project implements an **Automatic Differentiation** library in OCaml.
 
 Automatic differentiation is an algorithm used to evaluate partial derivatives of functions. Automatic differentiation is more efficient than symbolic differentiation, and more accurate than numeric differentiation. Our library can be used to define functions using our `Variable` and `Tensor` modules. One can then find gradients and various partial derivatives of these functions. 
-Examples are listed below. 
+Examples are listed below. We also use the `Bigarray` library to build our tensors, so that needs to be installed.
 
-## Running Examples
+## Building and Running Examples
 
 Clone the repository and build the project.
 
