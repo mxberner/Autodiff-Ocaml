@@ -1,0 +1,19 @@
+(library
+ (name ad)
+ (modules ad)
+ (libraries core tensor variable))
+
+(library
+ (name optimizer)
+ (modules optimizer)
+ (libraries core tensor variable))
+
+(library
+ (name tensor)
+ (modules tensor)
+ (libraries core variable))
+
+(library
+ (name variable)
+ (modules variable)
+ (libraries core))
