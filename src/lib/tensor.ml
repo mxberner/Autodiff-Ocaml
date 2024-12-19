@@ -38,7 +38,6 @@ let broadcast (x : t) (y : t) : t * t =
   let m = Array.length d1 and n = Array.length d2 in
   let a, b =
     match (m, n) with
-    | 1, 1 -> (x, y)
     | 0, _ ->
         let v = get x [||] in
         (create ~dims:d2 v, y)
@@ -172,7 +171,6 @@ let dot t1 t2 =
 (* Matrix product *)
 let matmul t1 t2 =
   let d1 = shape t1 and d2 = shape t2 in
-
   (* Handle scalar cases *)
   if Array.length d1 = 0 then t2
   else if Array.length d2 = 0 then t1 (* 1D x 1D = scalar dot product *)
@@ -436,7 +434,7 @@ let reshape (t : t) (new_dims : dims) : t =
     fill_tensor ();
     result
 
-(* Swapaxes (not supported) *)
+(* Swapaxes *)
 let swapaxes (t : t) (axis1 : int) (axis2 : int) : t =
   let dims = shape t in
   let n = Array.length dims in
