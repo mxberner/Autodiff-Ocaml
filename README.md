@@ -27,7 +27,6 @@ dune exec <example_name>
 ### Examples
 - [x] **basic** - Runs some basic operations using tensor module. 
 - [x] **simple** - Run autodifferentiation on a simple function.
-- [x] **hod** - Demonstrates higher order derivatives.
 - [x] **nn** - Train a single layer neural network on some random data.
 - [x] **visualize** - Visualizes the dynamically built computation graph. 
 - [x] **printed** - Demonstrates the underlying Hashtable. 
@@ -48,7 +47,6 @@ This graph is implicitly formed through the use of a hashtable of type v in the 
 - [ ] Example
     - [x] Basic
     - [x] Simple Neural Network
-    - [x] Higher Order Derivatives
     - [x] Visualizing autodiff computation graph 
     - [x] Demonstration of Hashtable
     - [ ] Convolutional Neural Network
