@@ -88,6 +88,62 @@ module Test = struct
          (Float.abs (54.598150033144236 -. T.get dfdx [||]))
          tolerance)
 
+  (* Tests for broadcastinfo *)
+  let test_broadcastinfo _ =
+    (* Test 1: Same shape tensors *)
+    let a_shape = [| 2; 3 |] in
+    let b_shape = [| 2; 3 |] in
+    let a_repeat, b_repeat = broadcastinfo a_shape b_shape in
+    assert_equal ~msg:"Same shape tensors should have empty repeat dims" [||]
+      a_repeat;
+    assert_equal ~msg:"Same shape tensors should have empty repeat dims" [||]
+      b_repeat;
+
+    (* Test 2: Broadcasting scalar to array *)
+    let a_shape = [||] in
+    let b_shape = [| 2; 3 |] in
+    let a_repeat, b_repeat = broadcastinfo a_shape b_shape in
+    assert_equal ~msg:"Scalar should broadcast to all dims" [| 0; 1 |] a_repeat;
+    assert_equal ~msg:"Array should have no repeat dims" [||] b_repeat;
+
+    (* Test 3: Broadcasting to higher dimensions *)
+    let a_shape = [| 3 |] in
+    let b_shape = [| 2; 3 |] in
+    let a_repeat, b_repeat = broadcastinfo a_shape b_shape in
+    assert_equal ~msg:"Lower dim should broadcast to higher dim" [| 0 |]
+      a_repeat;
+    assert_equal ~msg:"Higher dim should have no repeat dims" [||] b_repeat;
+
+    (* Test 4: Complex broadcasting *)
+    let a_shape = [| 1; 3; 1 |] in
+    let b_shape = [| 2; 1; 4 |] in
+    let a_repeat, b_repeat = broadcastinfo a_shape b_shape in
+    assert_equal ~msg:"Should identify correct broadcast dims for first tensor"
+      [| 0; 2 |] a_repeat;
+    assert_equal ~msg:"Should identify correct broadcast dims for second tensor"
+      [| 1 |] b_repeat
+
+  (* Tests for enable_broadcast *)
+  let test_enable_broadcast _ =
+    (* Test 1: Basic broadcasting *)
+    let a = create ~dims:[| 1; 3 |] 2.0 in
+    let b = create ~dims:[| 2; 1 |] 3.0 in
+    let a', b' = enable_broadcast a b in
+
+    assert_equal ~msg:"First tensor shape should be preserved" a.data a'.data;
+    assert_equal ~msg:"Second tensor shape should be preserved" b.data b'.data;
+
+    (* Test 2: Matrix multiplication broadcasting *)
+    let a = create ~dims:[| 2; 1; 3; 4 |] 1.0 in
+    let b = create ~dims:[| 1; 3; 4; 2 |] 1.0 in
+    let a', b' = enable_broadcast ~matmul:true a b in
+
+    (* Test shapes are preserved *)
+    assert_equal ~msg:"First tensor shape should be preserved in matmul" a.data
+      a'.data;
+    assert_equal ~msg:"Second tensor shape should be preserved in matmul" b.data
+      b'.data
+
   let series =
     "Given tests"
     >::: [
@@ -101,6 +157,8 @@ module Test = struct
            "8 - tan" >:: test_tan;
            "9 - log" >:: test_log;
            "10 - exp" >:: test_exp;
+           "11 - broadcastinfo" >:: test_broadcastinfo;
+           "12 - enable_broadcast" >:: test_enable_broadcast;
          ]
 end
 

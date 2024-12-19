@@ -1,7 +1,11 @@
 open Tensor
 
+<<<<<<< Updated upstream
 type v = { id : int; data : t; local_gradients : (v * (t -> t)) list; operation : string}
 (* Variable type *)
+=======
+type v = { id : int; mutable data : t; local_gradients : (v * (t -> t)) list }
+>>>>>>> Stashed changes
 
 module VariableHashtbl : sig
   type 'a t
@@ -20,6 +24,9 @@ val zero : unit -> v
 
 val one : unit -> v
 (* Create a variable with 0 value*)
+
+val zeros : dims -> v
+(* Create a variable with random value*)
 
 val random : ?seed:int -> dims -> v
 (* Create a variable with random value*) 
@@ -111,7 +118,12 @@ val print_table : t VariableHashtbl.t -> unit
 val sigmoid : v -> v
 val leaky_relu : ?alpha:float -> v -> v
 val binary_cross_entropy : v -> v -> v
+<<<<<<< Updated upstream
 
 
 val visualize : v -> string -> unit
 (* Visualize the computation graph of a variable *)
+=======
+val broadcastinfo : dims -> dims -> dims * dims
+val enable_broadcast : ?matmul:bool -> v -> v -> v * v
+>>>>>>> Stashed changes

@@ -1,71 +1,70 @@
 open Core
-open Tensor
 open Variable
 
-(* Generate synthetic dataset *)
-let generate_data (num_samples : int) : v * v * v * v =
-  let x1 = random [| num_samples; 2 |] in
-  let x2 = random [| num_samples; 2 |] in
+(* Assume that 'v' type and all the operations from your code snippet are in scope *)
+(* We have: type v = { id : int; mutable data : t; local_gradients : (v * (t -> t)) list } *)
+(* and functions like make, add, mul, matmul, sigmoid, binary_cross_entropy, etc. *)
 
-  (* Simple XOR-like classification *)
-  let y =
-    Tensor.map2
-      (fun a b ->
-        if Float.compare a 0.5 <> Float.compare b 0.5 then 1.0 else 0.0)
-      x1.data x2.data
-  in
-  let y_tensor = make y in
+(* Simple neural network parameters *)
+(* Let's say we have an input of shape (N, D_in) and a single hidden layer of H,
+   and an output dimension of 1 for binary classification *)
 
-  (x1, x2, y_tensor, x2)
+let n = 4 (* number of examples *)
+let d_in = 3 (* input features *)
+let h = 5 (* hidden layer size *)
+let d_out = 1 (* output dimension *)
 
-(* Neural network model *)
-let create_model () =
-  let weights = random [| 2; 2 |] in
-  let bias = create 0.0 in
-  (weights, bias)
+(* Create random inputs and targets *)
+let x_data = Tensor.random ~seed:42 [| n; d_in |]
+let y_data = Tensor.random ~seed:0 [| n; d_out |]
 
-(* Training function *)
-let train ?(learning_rate : float = 0.1) ?(epochs : int = 100) (x1 : v) (x2 : v)
-    (y_true : v) : unit =
-  let weights, bias = create_model () in
+(* Convert targets to a binary form (0/1) just for demonstration *)
+let y_data = Tensor.map (fun e -> if Float.(e > 0.5) then 1.0 else 0.0) y_data
 
-  for epoch = 1 to epochs do
-    (* Forward pass *)
-    let input = matmul x1 weights + x2 in
-    let logits = input + bias in
-    let y_pred = sigmoid logits in
+(* Wrap inputs into variables *)
+let x = make x_data
+let y = make y_data
 
-    (* Compute loss *)
-    let loss = binary_cross_entropy y_true y_pred in
+(* Initialize weights *)
+let w = make (Tensor.random ~seed:1 [| d_in; d_out |])
 
-    (* Compute gradients *)
-    let grad_tbl = gradients loss in
+(* Forward pass function *)
+let forward x =
+  (* Hidden layer: x * w1 , then leaky_relu *)
+  let hidden = leaky_relu (matmul x w) in
+  sigmoid hidden
 
-    (* Manual gradient descent *)
-    let weights_grad = find grad_tbl weights in
-    let bias_grad = find grad_tbl bias in
-
-    (* Update parameters *)
-    let _updated_weights =
-      make
-        (Tensor.sub weights.data
-        @@ map (fun g -> learning_rate *. g) weights_grad)
-    in
-
-    let _updated_bias =
-      make (Tensor.sub bias.data @@ map (fun g -> learning_rate *. g) bias_grad)
-    in
-
-    (* Print progress *)
-    if Int.(epoch % 10 = 0) then
-      Printf.printf "Epoch %d, Loss: %f \n" epoch @@ Tensor.get loss.data [||]
-  done
-
-(* Main function *)
+(* Training step *)
 let () =
-  Random.init 1;
-  let num_samples = 2 in
-  let x1, x2, y_true, _ = generate_data num_samples in
-  Printf.printf "Starting Neural Network Training\n";
-  train x1 x2 y_true;
-  Printf.printf "Training Complete\n"
+  (* Forward pass *)
+  let y_pred = forward x in
+  (* Compute loss *)
+  let loss = binary_cross_entropy y  y_pred in
+  Printf.printf "Loss before backprop: ";
+  print loss;
+  (* Print the loss *)
+  Printf.printf "\n";
+
+  (* Compute gradients *)
+  let grad_tbl = gradients loss in
+
+  (* Fetch gradients for w for demonstration *)
+  let dw = find grad_tbl w in
+
+  Printf.printf "Gradients:\n";
+  Printf.printf "dw: ";
+  Tensor.print dw;
+  Printf.printf "\n";
+
+  (* Optional: simple gradient descent step *)
+  (* Let's choose a learning rate *)
+  let lr = 0.01 in
+  w.data <- Tensor.(w.data - (dw * Tensor.create ~dims:(shape dw) lr));
+
+  (* Forward pass after update *)
+  let y_pred_after = forward x in
+  let loss_after = binary_cross_entropy y y_pred_after in
+
+  Printf.printf "\nLoss after backprop and parameter update: ";
+  print loss_after;
+  Printf.printf "\n"

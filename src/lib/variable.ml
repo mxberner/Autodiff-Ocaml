@@ -27,12 +27,117 @@ let const f = make (zeros [||] |> map (fun _ -> f))
 let zero () = const 0.0
 let one () = const 1.0
 let create ?dims (value : float) = make (create ?dims value)
+let zeros (dims : dims) = make (zeros dims)
 let random ?(seed : int option) (dims : dims) = make (random ?seed dims)
 let get (v : v) (dims : dims) : float = get v.data dims
 
+let broadcastinfo (shape_a : int array) (shape_b : int array) :
+    int array * int array =
+  (* Get maximum number of dimensions *)
+  let ndim = max (Array.length shape_a) (Array.length shape_b) in
+
+  (* Calculate how many dimensions to add to each shape *)
+  let add_ndims_to_a = Int.(ndim - Array.length shape_a) in
+  let add_ndims_to_b = Int.(ndim - Array.length shape_b) in
+
+  (* Create padded shapes with leading ones *)
+  let a_shape_ = Array.append (Array.create ~len:add_ndims_to_a 1) shape_a in
+  let b_shape_ = Array.append (Array.create ~len:add_ndims_to_b 1) shape_b in
+
+  (* Check if shapes can be broadcast *)
+  let can_broadcast =
+    Array.for_all2_exn a_shape_ b_shape_ ~f:(fun a b -> a = b || a = 1 || b = 1)
+  in
+
+  if not can_broadcast then
+    failwith
+      (Printf.sprintf "could not broadcast shapes %s %s"
+         (Array.to_list shape_a |> List.map ~f:string_of_int
+        |> String.concat ~sep:" ")
+         (Array.to_list shape_b |> List.map ~f:string_of_int
+        |> String.concat ~sep:" "));
+
+  (* Calculate repeat dimensions for a *)
+  let a_repeatdims =
+    Array.mapi a_shape_ ~f:(fun i a ->
+        let is_repeated = a = 1 && Array.get b_shape_ i > 1 in
+        let is_added = i < add_ndims_to_a in
+        is_repeated || is_added)
+  in
+
+  (* Calculate repeat dimensions for b *)
+  let b_repeatdims =
+    Array.mapi b_shape_ ~f:(fun i b ->
+        let is_repeated = b = 1 && Array.get a_shape_ i > 1 in
+        let is_added = i < add_ndims_to_b in
+        is_repeated || is_added)
+  in
+
+  (* Convert boolean arrays to indices where True *)
+  let bool_array_to_indices arr =
+    Array.mapi arr ~f:(fun i b -> if b then Some i else None)
+    |> Array.filter_map ~f:Fn.id
+  in
+
+  (bool_array_to_indices a_repeatdims, bool_array_to_indices b_repeatdims)
+
+let enable_broadcast ?(matmul = false) (a : v) (b : v) : v * v =
+  (* Get shapes excluding last 2 dimensions if matmul is true *)
+  let a_shape =
+    if matmul then
+      Array.sub (shape a.data) ~pos:0 ~len:Int.(Array.length (shape a.data) - 2)
+    else shape a.data
+  in
+  let b_shape =
+    if matmul then
+      Array.sub (shape b.data) ~pos:0 ~len:Int.(Array.length (shape b.data) - 2)
+    else shape b.data
+  in
+
+  let a_repeatdims, b_repeatdims = broadcastinfo a_shape b_shape in
+
+  (* Helper function to sum along specified dimensions and reshape *)
+  let sum_and_reshape path_value repeat_dims target_shape =
+    let summed =
+      Array.fold repeat_dims ~init:path_value ~f:(fun acc dim ->
+          sum ~axis:dim acc)
+    in
+    reshape summed target_shape
+  in
+
+  (* Create new variables with broadcast-aware gradients *)
+  let a' =
+    make a.data
+      ~local_gradients:
+        [
+          ( a,
+            fun path_value ->
+              let summed =
+                sum_and_reshape path_value a_repeatdims (shape a.data)
+              in
+              Tensor.zeros (shape a.data) + summed );
+        ]
+  in
+
+  let b' =
+    make b.data
+      ~local_gradients:
+        [
+          ( b,
+            fun path_value ->
+              let summed =
+                sum_and_reshape path_value b_repeatdims (shape b.data)
+              in
+              Tensor.zeros (shape b.data) + summed );
+        ]
+  in
+
+  (a', b')
+
 (* Tensor-aware operations *)
 let add (x : v) (y : v) =
-  let data = x.data + y.data in
+  let a, b = enable_broadcast x y in
+  let data = a.data + b.data in
   let local_gradients =
     [
       (x, fun path_value -> path_value);
@@ -45,12 +150,13 @@ let add (x : v) (y : v) =
   make data ~local_gradients ~operation
 
 let mul (x : v) (y : v) =
+  let a, b = enable_broadcast x y in
   let data = x.data * y.data in
   let local_gradients =
     [
-      (x, fun path_value -> path_value * y.data);
+      (x, fun path_value -> path_value * b.data);
       (* d/dx (x * y) = y *)
-      (y, fun path_value -> path_value * x.data);
+      (y, fun path_value -> path_value * a.data);
       (* d/dy (x * y) = x *)
     ]
   in
@@ -58,12 +164,13 @@ let mul (x : v) (y : v) =
   make data ~local_gradients ~operation
 
 let div (x : v) (y : v) =
+  let a, b = enable_broadcast x y in
   let data = map2 ( /. ) x.data y.data in
   let local_gradients =
     [
-      (x, fun path_value -> path_value / y.data);
+      (x, fun path_value -> path_value / b.data);
       (* d/dx (x / y) = 1/y *)
-      (y, fun path_value -> path_value * neg x.data / (y.data * y.data))
+      (y, fun path_value -> path_value * neg a.data / (b.data * b.data))
       (* d/dy (x / y) = -x/(y*y) *);
     ]
   in 
@@ -79,12 +186,12 @@ let inv (x : v) =
   make data ~local_gradients ~operation
 
 let neg (x : v) =
+  let dims = shape x.data in
   let data = neg x.data in
   let local_gradients =
-    [ (x, fun path_value -> path_value * neg (ones [||])) ]
-  in 
-  let operation = "neg" in
-  make data ~local_gradients ~operation
+    [ (x, fun path_value -> path_value * neg (ones dims)) ]
+  in
+  make data ~local_gradients
 
 let sub (x : v) (y : v) = add x @@ neg y
 
@@ -145,6 +252,7 @@ let rec compute (grad_tbl : t VariableHashtbl.t) (var : v) (path_value : t) =
   List.iter
     ~f:(fun (child_variable, multipy_by_locg_f) ->
       (* Multiply edges of a path *)
+
       let gradient_value_of_path = multipy_by_locg_f path_value in
       (* Add the different paths *)
       let prev_grad =
@@ -177,11 +285,13 @@ let sum ?axis (x : v) =
   make data ~local_gradients
 
 let matmul (x : v) (y : v) =
+  let a, b = enable_broadcast ~matmul:true x y in
+  let m = Array.length @@ shape a.data and n = Array.length @@ shape b.data in
   let data = matmul x.data y.data in
   let local_gradients =
     [
-      (x, fun path_value -> path_value * transpose y.data);
-      (y, fun path_value -> transpose x.data * path_value);
+      (a, fun path_value -> path_value * swapaxes a.data Int.(m - 2) Int.(m - 1));
+      (b, fun path_value -> swapaxes b.data Int.(n - 2) Int.(n - 1) * path_value);
     ]
   in 
   let operation = "matmul" in
@@ -242,37 +352,16 @@ let print_table (grad_tbl : t VariableHashtbl.t) =
 
 (* Sigmoid activation function *)
 let sigmoid (x : v) : v =
-  let one = create 1.0 in
-  div one (add one @@ exp (neg x))
+  let dims = shape x.data in
+  let one = create ~dims 1.0 in
+  one / (one + exp (neg x))
 
 (* Binary cross-entropy loss *)
 let binary_cross_entropy (y_true : v) (y_pred : v) : v =
-  (* let epsilon = create 1e-7 in
-     let one = create 1.0 in *)
-  sum y_true - sum y_pred
-
-(*Outputting computation graph*)
-let visualize (var : v) (output_file : string) =
-  let visited = Hashtbl.create (module Int) in
-  let buffer = Buffer.create 1024 in
-  Buffer.add_string buffer "digraph computation_graph {\n";
-
-  let rec visit_node (node : v) =
-    if not (Hashtbl.mem visited node.id) then (
-      Hashtbl.add_exn visited ~key:node.id ~data:();
-      (* Add node label *)
-      Buffer.add_string buffer
-        (Printf.sprintf
-           "  node%d [label=\"id: %d\\ndata: %.2f\"];\n" node.id node.id
-           (Tensor.get node.data [||]));
-      (* Add edges *)
-      List.iter node.local_gradients ~f:(fun (child, _) ->
-          Buffer.add_string buffer
-            (Printf.sprintf "  node%d -> node%d;\n" node.id child.id);
-          visit_node child))
-  in
-
-  visit_node var;
-  Buffer.add_string buffer "}\n";
-  Out_channel.write_all output_file ~data:(Buffer.contents buffer);
-  Printf.printf "Computation graph written to %s\n" output_file
+  let dims = shape y_true.data in
+  let epsilon = create ~dims 1e-6 in
+  let one = create ~dims 1.0 in
+  let term1 = y_true * log (y_pred + epsilon) in
+  let term2 = (one - y_true) * log (one - y_pred + epsilon) in
+  let loss = neg (sum (term1 + term2)) in
+  loss
