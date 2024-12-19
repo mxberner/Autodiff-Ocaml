@@ -1,0 +1,17 @@
+(executable
+ (public_name simple)
+ (name simple)
+ (modules simple)
+ (libraries core variable))
+
+(executable
+ (public_name nn)
+ (name nn)
+ (modules nn)
+ (libraries core tensor))
+
+(executable
+ (public_name hod)
+ (name hod)
+ (modules hod)
+ (libraries core variable))
