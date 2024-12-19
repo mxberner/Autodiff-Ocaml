@@ -45,6 +45,7 @@ dune exec <example_name>
 - [x] **simple** - Run autodifferentiation on a simple function.
 - [x] **hod** - Demonstrates higher order derivatives.
 - [x] **nn** - Train a single layer neural network on some random data.
+- [x] **visualize** - Visualizes the dynamically built computation graph. 
 - [ ] **cnn** - Convolutional Neural Network.
 
 
@@ -67,10 +68,11 @@ To do so, we plan to extend our gradient calculations for Tensors in the `forwar
     - [x] Basic
     - [x] Simple Neural Network
     - [x] Higher Order Derivatives
+    - [x] Visualizing autodiff computation graph
     - [ ] Convolutional Neural Network
 - [ ] More general control flow
 - [ ] Optimizers
-    - [ ] Gradient Descent
+    - [-] Gradient Descent
     - [ ] Stochastic Gradient Descent
     - [ ] Adam
 - [ ] Plotting
