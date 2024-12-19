@@ -477,6 +477,42 @@ module Test = struct
     assert_equal 111.0 @@ T.get flattened_3d [| 0 |];
     assert_equal 234.0 @@ T.get flattened_3d [| 23 |]
 
+
+  (* let test_broadcasting _ =
+    (* Test scalar broadcast *)
+    let scalar = T.create 2.0 in
+    let vector = T.ones [| 3 |] in
+    let result = T.add scalar vector in
+    assert_equal [| 3 |] @@ T.shape result;
+    Array.iter ~f:(fun i -> assert_equal 3.0 @@ T.get result [| i |]) [| 0; 1; 2 |];
+  
+    (* Test matrix broadcast with compatible dimensions *)
+    let mat1 = T.create ~dims:[| 2; 2 |] 2.0 in
+    let mat2 = T.ones [| 2; 2 |] in
+    let result = T.add mat1 mat2 in
+    assert_equal [| 2; 2 |] @@ T.shape result;
+    
+    (* Test broadcasting failures *)
+    assert_raises (T.DimensionMismatch "(2, 3) and (3, 2)") (fun () ->
+      let a = T.create ~dims:[| 2; 3 |] 1.0 in
+      let b = T.create ~dims:[| 3; 2 |] 1.0 in 
+      T.add a b) *)
+
+  let test_where _ =
+    let condition = T.create ~dims:[| 2; 2 |] 1.0 in
+    let x = T.create ~dims:[| 2; 2 |] 5.0 in
+    let y = T.create ~dims:[| 2; 2 |] 3.0 in
+    let result = T.where condition x y in
+    assert_equal [| 2; 2 |] @@ T.shape result;
+    assert_equal 5.0 @@ T.get result [| 0; 0 |]
+
+  let test_swapaxes _ =
+    let t = T.create ~dims:[| 2; 3; 4 |] 1.0 in
+    let result = T.swapaxes t 0 1 in
+    assert_equal [| 3; 2; 4 |] @@ T.shape result
+
+
+
   let series =
     "Given tests"
     >::: [
@@ -490,6 +526,8 @@ module Test = struct
            "8 - matmul" >:: test_matmul;
            "9 - transpose" >:: test_transpose;
            "10 - flatten" >:: test_flatten;
+           "11 - where" >:: test_where;
+           "12 - swapaxes" >:: test_swapaxes;
          ]
 end
 
