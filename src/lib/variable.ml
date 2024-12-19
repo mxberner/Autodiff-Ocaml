@@ -1,8 +1,10 @@
 open Core
 open Tensor
 
-type v = { id : int; data : t; local_gradients : (v * (t -> t)) list }
+(* Variable type *)
+type v = { id : int; data : t; local_gradients : (v * (t -> t)) list; operation : string }
 
+(* Hashtable of variables used for our computational graph *)
 module VariableHashtbl = Hashtbl.Make (struct
   type t = v
 
@@ -14,10 +16,11 @@ end)
 
 let variable_counter : int ref = ref 0
 
-let make ?(local_gradients : (v * (t -> t)) list = []) (data : t) =
+(* Creates the variable from a Tensor *)
+let make ?(local_gradients : (v * (t -> t)) list = []) ?(operation: string = "self") (data : t) =
   let id = !variable_counter in
   variable_counter := Int.( + ) !variable_counter 1;
-  { id; data; local_gradients }
+  { id; data; local_gradients; operation }
 
 (* Scalar constructors *)
 let const f = make (zeros [||] |> map (fun _ -> f))
@@ -37,8 +40,9 @@ let add (x : v) (y : v) =
       (y, fun path_value -> path_value);
       (* d/dy (x + y) = 1 *)
     ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "add" in
+  make data ~local_gradients ~operation
 
 let mul (x : v) (y : v) =
   let data = x.data * y.data in
@@ -50,7 +54,8 @@ let mul (x : v) (y : v) =
       (* d/dy (x * y) = x *)
     ]
   in
-  make data ~local_gradients
+  let operation = "mul" in
+  make data ~local_gradients ~operation
 
 let div (x : v) (y : v) =
   let data = map2 ( /. ) x.data y.data in
@@ -61,51 +66,58 @@ let div (x : v) (y : v) =
       (y, fun path_value -> path_value * neg x.data / (y.data * y.data))
       (* d/dy (x / y) = -x/(y*y) *);
     ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "mul" in
+  make data ~local_gradients ~operation
 
 let inv (x : v) =
   let data = map (fun v -> 1.0 /. v) x.data in
   let local_gradients =
     [ (x, fun path_value -> neg (path_value / (x.data * x.data))) ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "inv" in
+  make data ~local_gradients ~operation
 
 let neg (x : v) =
   let data = neg x.data in
   let local_gradients =
     [ (x, fun path_value -> path_value * neg (ones [||])) ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "neg" in
+  make data ~local_gradients ~operation
 
 let sub (x : v) (y : v) = add x @@ neg y
 
 (* Logarithmic operation *)
 let log (x : v) =
   let data = log x.data in
-  let local_gradients = [ (x, fun path_value -> path_value / x.data) ] in
-  make data ~local_gradients
+  let local_gradients = [ (x, fun path_value -> path_value / x.data) ] in 
+  let operation = "log" in
+  make data ~local_gradients ~operation
 
 (* Exponent operation *)
 let exp (x : v) =
   let data = exp x.data in
-  let local_gradients = [ (x, fun path_value -> path_value * exp x.data) ] in
-  make data ~local_gradients
+  let local_gradients = [ (x, fun path_value -> path_value * exp x.data) ] in 
+  let operation = "exp" in
+  make data ~local_gradients ~operation
 
 (* Trigonometric operations *)
 let sin (x : v) =
   let data = sin x.data in
   let local_gradients =
     [ (x, fun path_value -> path_value * Tensor.cos x.data) ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "sin" in
+  make data ~local_gradients ~operation
 
 let cos (x : v) =
   let data = cos x.data in
   let local_gradients =
     [ (x, fun path_value -> path_value * Tensor.neg (Tensor.sin x.data)) ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "cos" in
+  make data ~local_gradients ~operation
 
 let tan (x : v) =
   let data = tan x.data in
@@ -120,8 +132,9 @@ let tan (x : v) =
                 1. /. (cs *. cs))
               x.data );
     ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "tan" in
+  make data ~local_gradients ~operation
 
 (* Comparison and equality *)
 let compare a b = Float.compare (get a [||]) (get b [||])
@@ -158,8 +171,9 @@ let find grad_tbl a =
 
 let sum ?(axis = -1) (x : v) =
   let data = sum ~axis x.data in
-  let local_gradients = [ (x, fun path_value -> path_value + data) ] in
-  make data ~local_gradients
+  let local_gradients = [ (x, fun path_value -> path_value + data) ] in 
+  let operation = "sum" in
+  make data ~local_gradients ~operation
 
 let matmul (x : v) (y : v) =
   let data = matmul x.data y.data in
@@ -168,21 +182,24 @@ let matmul (x : v) (y : v) =
       (x, fun path_value -> path_value * transpose y.data);
       (y, fun path_value -> transpose x.data * path_value);
     ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "matmul" in
+  make data ~local_gradients ~operation
 
 let transpose (v : v) : v =
   let data = transpose v.data in
-  let local_gradients = [ (v, fun path_value -> transpose path_value) ] in
-  make data ~local_gradients
+  let local_gradients = [ (v, fun path_value -> transpose path_value) ] in 
+  let operation = "transpose" in
+  make data ~local_gradients ~operation
 
 (* Machine Learning Functions *)
 let softmax ?(axis = -1) (v : v) : v =
   let exp_a = exp v in
   let s = sum ~axis v in
   let data = Tensor.exp v.data in
-  let local_gradients = [ (v, fun _ -> exp_a.data / s.data) ] in
-  make data ~local_gradients
+  let local_gradients = [ (v, fun _ -> exp_a.data / s.data) ] in 
+  let operation = "softmax" in
+  make data ~local_gradients ~operation
 
 (* Leaky ReLU activation function *)
 let leaky_relu ?(alpha = 0.01) (x : v) : v =
@@ -197,8 +214,9 @@ let leaky_relu ?(alpha = 0.01) (x : v) : v =
             (fun v grad -> if Float.(v > 0.0) then grad else alpha *. grad)
             x.data path_value );
     ]
-  in
-  make data ~local_gradients
+  in 
+  let operation = "leaky_relu" in
+  make data ~local_gradients ~operation
 
 (* Operator overloading *)
 let ( = ) = equal
@@ -219,7 +237,7 @@ let print v =
 (* Printing *)
 let print_table (grad_tbl : t VariableHashtbl.t) =
   Hashtbl.iter_keys grad_tbl ~f:(fun e ->
-      Printf.printf "%d %f \n" e.id @@ Tensor.get e.data [||])
+      Printf.printf "%d %f %s\n" e.id (Tensor.get e.data [||]) e.operation)
 
 (* Sigmoid activation function *)
 let sigmoid (x : v) : v =
@@ -233,9 +251,7 @@ let binary_cross_entropy (y_true : v) (y_pred : v) : v =
 
   sum y_true - sum y_pred
 
-
-
-  (*Outputting computation graph*)
+(*Outputting computation graph*)
 let visualize (var : v) (output_file : string) =
   let visited = Hashtbl.create (module Int) in
   let buffer = Buffer.create 1024 in

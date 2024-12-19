@@ -1,12 +1,14 @@
 open Tensor
 
-type v = { id : int; data : t; local_gradients : (v * (t -> t)) list }
+type v = { id : int; data : t; local_gradients : (v * (t -> t)) list; operation : string}
+(* Variable type *)
 
 module VariableHashtbl : sig
   type 'a t
 end
+(* Hashtable of variables used for the computational graph*)
 
-val make : ?local_gradients:(v * (t -> t)) list -> t -> v
+val make : ?local_gradients:(v * (t -> t)) list -> ?operation:string -> t -> v
 (* Create the variable from a Tensor *)
 
 val create : ?dims:dims -> float -> v
@@ -20,7 +22,10 @@ val one : unit -> v
 (* Create a variable with 0 value*)
 
 val random : ?seed:int -> dims -> v
-(* Create a variable with random value*)
+(* Create a variable with random value*) 
+
+val get : v -> dims -> float
+(* Gets value from variable *)
 
 val add : v -> v -> v
 (* Create the variable that results from adding two variables *)
@@ -69,8 +74,6 @@ val find : t VariableHashtbl.t -> v -> t
 
 (* Tensor operations with gradient calculations *)
 
-val get : v -> dims -> float
-
 val sum : ?axis:int -> v -> v
 (** [sum v] computes the sum of all elements in the tensor, returning a scalar value. *)
 
@@ -87,7 +90,8 @@ val transpose : v -> v
 
 val softmax : ?axis:int -> v -> v
 
-(* Operator overloading *)
+(* Operator overloading *) 
+
 val ( + ) : v -> v -> v
 val ( - ) : v -> v -> v
 val ( * ) : v -> v -> v
@@ -100,7 +104,7 @@ val print : v -> unit
 (* Print the value of a variable *)
 
 val print_table : t VariableHashtbl.t -> unit
-(* **DEBUG** Print the gradient hash_table *)
+(* Prints the gradient hash_table. Useful for looking at overall composition of functions. *)
 
 (* Machine Learning Function *)
 
