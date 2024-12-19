@@ -146,9 +146,9 @@ let rec compute (grad_tbl : t VariableHashtbl.t) (var : v) (path_value : t) =
     var.local_gradients
 
 (* Gradient dictionary *)
-let gradients (variable : v) : t VariableHashtbl.t =
+let gradients (var : v) : t VariableHashtbl.t =
   let grad_tbl : t VariableHashtbl.t = VariableHashtbl.create () in
-  compute grad_tbl variable (ones [||]);
+  compute grad_tbl var (ones [||]);
   grad_tbl
 
 (* Find gradient for a specific variable *)
@@ -162,24 +162,11 @@ let sum ?(axis = -1) (x : v) =
   make data ~local_gradients
 
 let matmul (x : v) (y : v) =
-  let d1 = shape x.data and d2 = shape y.data in
-  let m = Array.length d1 and n = Array.length d2 in
-  let a, b =
-    match (m, n) with
-    | 1, 1 -> (x, y)
-    | 1, _ ->
-        let v = get x [||] in
-        (create ~dims:d2 v, y)
-    | _, 1 ->
-        let v = get y [||] in
-        (x, create ~dims:d1 v)
-    | _, _ -> (x, y)
-  in
-  let data = matmul a.data b.data in
+  let data = matmul x.data y.data in
   let local_gradients =
     [
-      (x, fun path_value -> path_value * transpose b.data);
-      (y, fun path_value -> transpose a.data * path_value);
+      (x, fun path_value -> path_value * transpose y.data);
+      (y, fun path_value -> transpose x.data * path_value);
     ]
   in
   make data ~local_gradients
@@ -241,9 +228,7 @@ let sigmoid (x : v) : v =
 
 (* Binary cross-entropy loss *)
 let binary_cross_entropy (y_true : v) (y_pred : v) : v =
-  let epsilon = create 1e-7 in
-  let loss_pos = neg (y_true * log (y_pred + epsilon)) in
-  let loss_neg =
-    neg ((create 1.0 - y_true) * log (create 1.0 - y_pred + epsilon))
-  in
-  sum loss_pos + sum loss_neg
+  (* let epsilon = create 1e-7 in
+  let one = create 1.0 in *)
+
+  sum y_true - sum y_pred

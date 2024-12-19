@@ -375,7 +375,7 @@ let flatten t =
 (* Print *)
 let print (t : t) = iter (fun e -> Printf.printf "%f, " e) t
 
-(* Reshape (not supported) *)
+(* Reshape *)
 let reshape (t : t) (new_dims : dims) : t =
   let old_dims = shape t in
   let old_size = Array.fold ~f:( * ) ~init:1 old_dims in
